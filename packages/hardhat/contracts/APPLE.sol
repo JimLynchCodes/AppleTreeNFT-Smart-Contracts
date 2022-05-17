@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 contract APPLE is ERC20, Ownable, Pausable {
 
-  address TREE_address;
+  address public TREE_address;
 
   mapping(address => uint256) nutrition_score;
 

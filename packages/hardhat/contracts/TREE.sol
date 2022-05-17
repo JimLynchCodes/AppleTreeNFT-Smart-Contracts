@@ -21,14 +21,15 @@ contract TREE is ERC721, Ownable, Pausable {
   uint256 breedingCommision = 2;
 
   struct TreeData {
+    bool isForSale;
+    bool isListedForBreeding;
+
     uint256 tokenId;
     
     uint256 birthday_timestamp;
     uint256 last_picked_apple_timestamp;
     
-    bool isForSale;
     uint256 sellingPrice;
-    bool isListedForBreeding;
     uint256 breedingPrice;
     uint256 gen;
 
@@ -68,12 +69,11 @@ contract TREE is ERC721, Ownable, Pausable {
 
     require(msg.sender == ownerOf(tree_token_id));
     require(block.timestamp > (tree.last_picked_apple_timestamp + tree.growthSpeed));
+    trees[tree_token_id].last_picked_apple_timestamp = block.timestamp;
     
     TreeData memory tree = trees[tree_token_id];
 
     uint256 amount_of_apples_to_mint = apples_to_mint_calculation(tree);
-
-    trees[tree_token_id].last_picked_apple_timestamp = block.timestamp;
 
     APPLE(APPLE_address).mint(msg.sender, amount_of_apples_to_mint);
 
@@ -87,10 +87,7 @@ contract TREE is ERC721, Ownable, Pausable {
       (age_ms ** 2 + APPLE(APPLE_address).get_nutrition_score(msg.sender)));
   }
 
-  // gene splicing
-  function mint() internal {
-
-  }
+  // breeding of TREEs
 
   function list_for_breeding(uint256 tokenId, uint256 breeding_price) external whenNotPaused {
     require(ownerOf(tokenId) == msg.sender);
@@ -152,7 +149,25 @@ contract TREE is ERC721, Ownable, Pausable {
 
   }
 
-  // listing & purchasing
+  function cancel_breeding_listing(uint tokenId) external whenNotPaused {
+    
+    trees[tokenId].isListedForBreeding = false;
+
+    // swap n' pop removal from breeding array
+
+    uint256 old_token_for_sale_index = trees_for_breeding_index[tokenId];
+
+    uint256 last_element_token_id = trees_for_breeding[next_tree_for_breeding_index];
+
+    // set last index value overwriting the element to delete
+    trees_for_breeding[old_token_for_sale_index] = trees_for_breeding[next_tree_for_breeding_index];
+    trees_for_breeding_index[last_element_token_id] = old_token_for_sale_index;
+
+    // pop off the end
+    trees_for_breeding.pop();
+  }
+
+  // In-app buying & selling of TREEs
 
   function list_for_sale(uint256 tokenId, uint256 sell_price) external whenNotPaused {
 
@@ -168,25 +183,6 @@ contract TREE is ERC721, Ownable, Pausable {
     trees[tokenId].sellingPrice = sell_price;
 
     approve(address(this), tokenId);
-
-  }
-
-  function cancel_for_sale(uint tokenId) external whenNotPaused {
-    // gives approval rights back to the current owner.
-    approve(ownerOf(tokenId), tokenId);
-
-    // swap n' pop removal from for sale array
-
-    uint256 old_token_for_sale_index = trees_for_sale_index[tokenId];
-
-    uint256 last_element_token_id = trees_for_sale[next_tree_for_sale_index];
-
-    // set last index value overwriting the element to delete
-    trees_for_sale[old_token_for_sale_index] = trees_for_sale[next_tree_for_sale_index];
-    trees_for_sale_index[last_element_token_id] = old_token_for_sale_index;
-
-    // pop off the end
-    trees_for_sale.pop();
 
   }
 
@@ -206,6 +202,26 @@ contract TREE is ERC721, Ownable, Pausable {
     // transfer TREE NFT to the buyer
     transferFrom(current_owner, msg.sender, tree_token_id);
 
+  }
+
+  function cancel_for_sale(uint tokenId) external whenNotPaused {
+    // gives approval rights back to the current owner.
+    approve(ownerOf(tokenId), tokenId);
+
+    trees[tokenId].isForSale = false;
+
+    // swap n' pop removal from for sale array
+
+    uint256 old_token_for_sale_index = trees_for_sale_index[tokenId];
+
+    uint256 last_element_token_id = trees_for_sale[next_tree_for_sale_index];
+
+    // set last index value overwriting the element to delete
+    trees_for_sale[old_token_for_sale_index] = trees_for_sale[next_tree_for_sale_index];
+    trees_for_sale_index[last_element_token_id] = old_token_for_sale_index;
+
+    // pop off the end
+    trees_for_sale.pop();
   }
 
   // admin functions
@@ -254,5 +270,45 @@ contract TREE is ERC721, Ownable, Pausable {
   function update_APPLE_address(address newTreeAddress) external onlyOwner {
     APPLE_address = newTreeAddress;
   }
+
+// handling images on chain
+function getSvg(uint tokenId, string trunk_color) private view returns (string memory) {
+  string[5] memory parts;
+  parts[0] = "<svg viewBox='0 0 350 350'><style>.a { fill: ";
+  parts[1] = trunk_color;
+  parts[2] = "; font-size: 18px; }</style><text x='10' y='10' class='a'>Token #";
+  parts[3] = string(tokenId);
+  parts[4] = "</text></svg>";
+  
+  return string(abi.encodePacked, parts[0], parts[1], parts[2], parts[3], parts[4]);
+}
+
+function tokenURI(uint256 tokenId) override public view returns (string memory) {
+
+  TreeData tree_data = trees[tokenId];
+
+  string memory svgData = getSvg(tokenId, tree.trunk_color);
+
+  string[] memory json_parts;
+
+  string memory json = Base64.encode(bytes(string(abi.encodePacked(
+    '{' + 
+    '"name": "', 'TREE"',
+    '"description": "Some interesting description..."', 
+    '"image_data": "', bytes(svgData), '"}',
+    '"birthday": "', tree.birthday_timestamp + '"',
+    '"last picked": "', tree.last_picked_apple_timestamp + '"',
+    '"generation": "', tree.gen + '"',
+    '"growth speed": "', tree.growthSpeed + '"',
+    '"growth strength": "', tree.growthStrength + '"',
+    '"trunk color": "', tree.trunk_color + '"',
+    '"trunk style": "', tree.trunk_style + '"',
+    '"leaves color": "', tree.leaves_color + '"',
+    '"leaves style": "', tree.leaves_style + '"',
+    '}'
+  ))));
+
+  return string(abi.encodePacked('data:application/json;base64,', json));
+}
 
 }

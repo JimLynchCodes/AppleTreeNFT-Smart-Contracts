@@ -3,17 +3,16 @@ pragma solidity >=0.8.0 <0.9.0;
 
 import "./APPLE.sol";
 import "./Base64.sol";
+import "./TREE_helpers.sol";
 
 import "hardhat/console.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
-// https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/access/Ownable.sol
-
-contract TREE is ERC721, Ownable, Pausable {
-
+contract TREE is ERC721, Ownable, Pausable, ERC721Holder {
     address public APPLE_address;
 
     uint256 gen_zeros_minted;
@@ -44,6 +43,7 @@ contract TREE is ERC721, Ownable, Pausable {
         uint256 tokenId;
         uint256 birthday_timestamp;
         uint256 last_picked_apple_timestamp;
+        uint256 sapling_growth_time;
         uint256 sellingPrice;
         uint256 breedingPrice;
         uint256 gen;
@@ -54,6 +54,7 @@ contract TREE is ERC721, Ownable, Pausable {
         string leaves_color;
         string leaves_style;
     }
+
     mapping(uint256 => TreeData) trees;
 
     constructor() ERC721("Trees", "TREE") {
@@ -61,37 +62,35 @@ contract TREE is ERC721, Ownable, Pausable {
     }
 
     function pick_APPLEs(uint256 tree_token_id) external whenNotPaused {
-        require(msg.sender == ownerOf(tree_token_id));
-
-        // TreeData memory tree = trees[tree_token_id];
+        require(
+            msg.sender == ownerOf(tree_token_id),
+            "You are not the TREE owner!"
+        );
 
         require(
             block.timestamp >
-                (trees[tree_token_id].last_picked_apple_timestamp + trees[tree_token_id].growthSpeed)
+                (trees[tree_token_id].birthday_timestamp +
+                    trees[tree_token_id].sapling_growth_time), 
+                    "This TREE is still a wee sapling!"
         );
+
+        require(
+            block.timestamp >
+                (trees[tree_token_id].last_picked_apple_timestamp +
+                    trees[tree_token_id].growthSpeed), 
+                    "The APPLE on this TREE is not done growing yet!"
+        );
+        
         trees[tree_token_id].last_picked_apple_timestamp = block.timestamp;
 
-        uint256 amount_of_apples_to_mint = apples_to_mint_calculation(trees[tree_token_id].birthday_timestamp, trees[tree_token_id].growthStrength);
-
-        APPLE(APPLE_address).mint(msg.sender, amount_of_apples_to_mint);
-    }
-
-    function apples_to_mint_calculation(uint256 birthday_timestamp, uint256 growthStrength)
-        internal
-        view
-        returns (uint256)
-    {
-        uint256 age_ms = block.timestamp - birthday_timestamp;
-
-        return
-            growthStrength *
-            (age_ms**2 /
-                (age_ms**2 +
-                    APPLE(APPLE_address).get_nutrition_score(msg.sender)));
+        APPLE(APPLE_address).mint(msg.sender, TREE_helpers.apples_to_mint_calculation(
+            trees[tree_token_id].birthday_timestamp,
+            trees[tree_token_id].growthStrength,
+            APPLE_address
+        ));
     }
 
     // breeding of TREEs
-
     function list_for_breeding(uint256 tokenId, uint256 breeding_price)
         external
         whenNotPaused
@@ -120,7 +119,8 @@ contract TREE is ERC721, Ownable, Pausable {
             ownerOf(my_tree_token) == msg.sender,
             "You are not the TREE owner!"
         );
-        require(balanceOf(msg.sender) >= trees[mate_tree_token].breedingPrice);
+
+        require(balanceOf(msg.sender) >= trees[mate_tree_token].breedingPrice, "You don't have enough APPLEs to pay the breeding cost!");
 
         // transfer APPLE payment
         APPLE(APPLE_address).approve(
@@ -147,6 +147,8 @@ contract TREE is ERC721, Ownable, Pausable {
             trees[my_tree_token].growthSpeed) / 2;
         uint256 offspring_growth_strength = (trees[mate_tree_token]
             .growthStrength + trees[my_tree_token].growthStrength) / 2;
+        uint256 offspring_sapling_growth_time = (trees[mate_tree_token]
+            .sapling_growth_time + trees[my_tree_token].sapling_growth_time) / 2;
 
         // TODO - find "average" of colors and styles...
         string memory offspring_trunk_color = trees[mate_tree_token]
@@ -158,12 +160,15 @@ contract TREE is ERC721, Ownable, Pausable {
         string memory offspring_leaves_style = trees[mate_tree_token]
             .leaves_style;
 
-        TreeData memory new_tree = TreeData(
+        _safeMint(msg.sender, next_tree_token_id);
+
+        trees[next_tree_token_id] = TreeData(
             false,
             false,
             next_tree_token_id,
             block.timestamp,
             block.timestamp,
+            offspring_sapling_growth_time,
             0,
             0,
             offspring_generation,
@@ -174,10 +179,6 @@ contract TREE is ERC721, Ownable, Pausable {
             offspring_leaves_color,
             offspring_leaves_style
         );
-
-        _safeMint(msg.sender, next_tree_token_id);
-
-        trees[next_tree_token_id] = new_tree;
 
         next_tree_token_id++;
     }
@@ -226,6 +227,7 @@ contract TREE is ERC721, Ownable, Pausable {
     }
 
     function purchase(uint256 tree_token_id) external whenNotPaused {
+        
         address current_owner = ownerOf(tree_token_id);
 
         require(msg.sender != current_owner, "Can't buy your own TREE!");
@@ -256,7 +258,7 @@ contract TREE is ERC721, Ownable, Pausable {
         );
 
         // transfer TREE NFT to the buyer
-        transferFrom(current_owner, msg.sender, tree_token_id);
+        _transfer(current_owner, msg.sender, tree_token_id);
     }
 
     function cancel_for_sale(uint256 tokenId) external whenNotPaused {
@@ -288,19 +290,26 @@ contract TREE is ERC721, Ownable, Pausable {
         uint256 listingPrice,
         uint256 growthSpeed,
         uint256 growthStrength,
+        uint256 sapling_growth_time,
         string memory trunk_color,
         string memory trunk_style,
         string memory leaves_color,
         string memory leaves_style
     ) external onlyOwner {
-        require(gen_zeros_minted < gen_zeros_max_supply);
+        require(
+            gen_zeros_minted < gen_zeros_max_supply,
+            "The max number of gen zero TREEs have been minted!"
+        );
 
-        TreeData memory new_tree = TreeData(
+        _safeMint(address(this), next_tree_token_id);
+
+        trees[next_tree_token_id] = TreeData(
             true,
             false,
             next_tree_token_id,
             block.timestamp,
             block.timestamp,
+            sapling_growth_time,
             listingPrice,
             0,
             0,
@@ -312,10 +321,6 @@ contract TREE is ERC721, Ownable, Pausable {
             leaves_style
         );
 
-        _safeMint(address(this), next_tree_token_id);
-
-        trees[next_tree_token_id] = new_tree;
-
         trees_for_sale.push(next_tree_token_id);
 
         next_tree_token_id++;
@@ -325,78 +330,46 @@ contract TREE is ERC721, Ownable, Pausable {
         APPLE_address = newTreeAddress;
     }
 
-    // handling images on chain
-    function getSvg(uint256 tokenId, string memory trunk_color)
-        internal
-        pure
-        returns (string memory)
-    {
-        string[5] memory parts;
-        parts[0] = "<svg viewBox='0 0 350 350'><style>.a { fill: ";
-        parts[1] = trunk_color;
-        parts[
-            2
-        ] = "; font-size: 18px; }</style><text x='10' y='10' class='a'>Token #";
-        parts[3] = Strings.toString(tokenId);
-        parts[4] = "</text></svg>";
-
-        return
-            string(
-                abi.encodePacked(
-                    parts[0],
-                    parts[1],
-                    parts[2],
-                    parts[3],
-                    parts[4]
-                )
-            );
-    }
-
     function tokenURI(uint256 tokenId)
         public
         view
         override
         returns (string memory)
     {
-        // TreeData memory tree_data = trees[tokenId];
-
-        // string memory svgData = getSvg(tokenId, trees[tokenId].trunk_color);
-
         string memory json = Base64.encode(
             bytes(
                 string(
                     abi.encodePacked(
                         "{",
-                        '"name": "',
-                        'TREE"',
-                        '"description": "Some interesting description..."',
+                        '"name": "TREE",',
+                        '"description": "Some interesting description...",',
                         '"image_data": "',
-                        bytes(getSvg(tokenId, trees[tokenId].trunk_color)),
-                        '"}',
+                        bytes(TREE_helpers.getSvg(tokenId, trees[tokenId].trunk_color)),
+                        '",',
                         '"birthday": "',
                         trees[tokenId].birthday_timestamp,
-                        '"',
+                        '",',
                         '"last picked": "',
                         trees[tokenId].last_picked_apple_timestamp,
-                        '"',
+                        '",',
                         '"generation": "',
                         trees[tokenId].gen,
-                        '"',
+                        '",',
                         '"growth speed": "',
                         trees[tokenId].growthSpeed,
-                        '"',
+                        '",',
                         '"growth strength": "',
                         trees[tokenId].growthStrength,
-                        '"',
+                        '",',
                         '"trunk color": "',
                         trees[tokenId].trunk_color,
-                        '"',
+                        '",',
                         '"trunk style": "',
                         trees[tokenId].trunk_style,
-                        '"',
+                        '",',
                         '"leaves color": "',
                         trees[tokenId].leaves_color,
-                        '"',
+                        '",',
                         '"leaves style": "',
                         trees[tokenId].leaves_style,
                         '"',
@@ -420,26 +393,4 @@ contract TREE is ERC721, Ownable, Pausable {
     {
         return trees_for_breeding;
     }
-
-
-    
-    // function getTreeForSaleInfo(uint256 tokenId)
-    //     external
-    //     view
-    //     returns (bool, bool, uint256, uint256)
-    // {
-    //     TreeData memory tree = trees[tokenId];
-        
-    //     return (tree.isForSale, tree.isListedForBreeding, tree.sellingPrice, tree.breedingPrice);
-    // }
-    
-    // function isTreeForSale(uint256 tokenId)
-    //     external
-    //     view
-    //     returns (bool)
-    // {
-    //     // TreeData memory tree = ;
-        
-    //     return (trees[tokenId].isForSale);
-    // }
 }

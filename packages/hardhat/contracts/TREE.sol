@@ -10,9 +10,8 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
-import "@openzeppelin/contracts/utils/Strings.sol";
 
-contract TREE is ERC721, Ownable, Pausable, ERC721Holder {
+contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
     address public APPLE_address;
 
     uint256 gen_zeros_minted;
@@ -70,24 +69,27 @@ contract TREE is ERC721, Ownable, Pausable, ERC721Holder {
         require(
             block.timestamp >
                 (trees[tree_token_id].birthday_timestamp +
-                    trees[tree_token_id].sapling_growth_time), 
-                    "This TREE is still a wee sapling!"
+                    trees[tree_token_id].sapling_growth_time),
+            "This TREE is still a wee sapling!"
         );
 
         require(
             block.timestamp >
                 (trees[tree_token_id].last_picked_apple_timestamp +
-                    trees[tree_token_id].growthSpeed), 
-                    "The APPLE on this TREE is not done growing yet!"
+                    trees[tree_token_id].growthSpeed),
+            "The APPLE on this TREE is not done growing yet!"
         );
-        
+
         trees[tree_token_id].last_picked_apple_timestamp = block.timestamp;
 
-        APPLE(APPLE_address).mint(msg.sender, TREE_helpers.apples_to_mint_calculation(
-            trees[tree_token_id].birthday_timestamp,
-            trees[tree_token_id].growthStrength,
-            APPLE_address
-        ));
+        APPLE(APPLE_address).mint(
+            msg.sender,
+            TREE_helpers.apples_to_mint_calculation(
+                trees[tree_token_id].birthday_timestamp,
+                trees[tree_token_id].growthStrength,
+                APPLE_address
+            )
+        );
     }
 
     // breeding of TREEs
@@ -120,7 +122,10 @@ contract TREE is ERC721, Ownable, Pausable, ERC721Holder {
             "You are not the TREE owner!"
         );
 
-        require(balanceOf(msg.sender) >= trees[mate_tree_token].breedingPrice, "You don't have enough APPLEs to pay the breeding cost!");
+        require(
+            balanceOf(msg.sender) >= trees[mate_tree_token].breedingPrice,
+            "You don't have enough APPLEs to pay the breeding cost!"
+        );
 
         // transfer APPLE payment
         APPLE(APPLE_address).approve(
@@ -148,7 +153,8 @@ contract TREE is ERC721, Ownable, Pausable, ERC721Holder {
         uint256 offspring_growth_strength = (trees[mate_tree_token]
             .growthStrength + trees[my_tree_token].growthStrength) / 2;
         uint256 offspring_sapling_growth_time = (trees[mate_tree_token]
-            .sapling_growth_time + trees[my_tree_token].sapling_growth_time) / 2;
+            .sapling_growth_time + trees[my_tree_token].sapling_growth_time) /
+            2;
 
         // TODO - find "average" of colors and styles...
         string memory offspring_trunk_color = trees[mate_tree_token]
@@ -227,7 +233,6 @@ contract TREE is ERC721, Ownable, Pausable, ERC721Holder {
     }
 
     function purchase(uint256 tree_token_id) external whenNotPaused {
-        
         address current_owner = ownerOf(tree_token_id);
 
         require(msg.sender != current_owner, "Can't buy your own TREE!");
@@ -344,7 +349,12 @@ contract TREE is ERC721, Ownable, Pausable, ERC721Holder {
                         '"name": "TREE",',
                         '"description": "Some interesting description...",',
                         '"image_data": "',
-                        bytes(TREE_helpers.getSvg(tokenId, trees[tokenId].trunk_color)),
+                        bytes(
+                            TREE_helpers.getSvg(
+                                tokenId,
+                                trees[tokenId].trunk_color
+                            )
+                        ),
                         '",',
                         '"birthday": "',
                         trees[tokenId].birthday_timestamp,

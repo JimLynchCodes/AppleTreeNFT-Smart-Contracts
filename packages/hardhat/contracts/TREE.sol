@@ -10,6 +10,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 
 contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
     address public APPLE_address;
@@ -56,7 +57,7 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
 
     mapping(uint256 => TreeData) trees;
 
-    constructor() ERC721("Trees", "TREE") {
+    constructor() ERC721("Trees2", "TREE2") {
         // Do nothing on delpoy...
     }
 
@@ -349,40 +350,42 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
                         '"name": "TREE",',
                         '"description": "Some interesting description...",',
                         '"image_data": "',
-                        bytes(
-                            TREE_helpers.getSvg(
-                                tokenId,
-                                trees[tokenId].trunk_color
-                            )
+                        TREE_helpers.getSvg(
+                            tokenId,
+                            trees[tokenId].trunk_color
                         ),
                         '",',
-                        '"birthday": "',
-                        trees[tokenId].birthday_timestamp,
-                        '",',
-                        '"last picked": "',
-                        trees[tokenId].last_picked_apple_timestamp,
-                        '",',
-                        '"generation": "',
-                        trees[tokenId].gen,
-                        '",',
-                        '"growth speed": "',
-                        trees[tokenId].growthSpeed,
-                        '",',
-                        '"growth strength": "',
-                        trees[tokenId].growthStrength,
-                        '",',
+                        '"attributes": [{',
+                        '"birthday": ',
+                        Strings.toString(trees[tokenId].birthday_timestamp),
+                        "},{",
+                        '"last picked": ',
+                        Strings.toString(
+                            trees[tokenId].last_picked_apple_timestamp
+                        ),
+                        "},{",
+                        '"generation": ',
+                        Strings.toString(trees[tokenId].gen),
+                        "},{",
+                        '"growth speed": ',
+                        Strings.toString(trees[tokenId].growthSpeed),
+                        "},{",
+                        '"growth strength": ',
+                        Strings.toString(trees[tokenId].growthStrength),
+                        "},{",
                         '"trunk color": "',
                         trees[tokenId].trunk_color,
-                        '",',
+                        '"},{',
                         '"trunk style": "',
                         trees[tokenId].trunk_style,
-                        '",',
+                        '"},{',
                         '"leaves color": "',
                         trees[tokenId].leaves_color,
-                        '",',
+                        '"},{',
                         '"leaves style": "',
                         trees[tokenId].leaves_style,
                         '"',
+                        "}]",
                         "}"
                     )
                 )
@@ -392,15 +395,15 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
         return string(abi.encodePacked("data:application/json;base64,", json));
     }
 
-    function getTreesForSale() external view returns (uint256[] memory) {
-        return trees_for_sale;
-    }
+    // function getTreesForSale() external view returns (uint256[] memory) {
+    //     return trees_for_sale;
+    // }
 
-    function getTreesListedForBreeding()
-        external
-        view
-        returns (uint256[] memory)
-    {
-        return trees_for_breeding;
-    }
+    // function getTreesListedForBreeding()
+    //     external
+    //     view
+    //     returns (uint256[] memory)
+    // {
+    //     return trees_for_breeding;
+    // }
 }

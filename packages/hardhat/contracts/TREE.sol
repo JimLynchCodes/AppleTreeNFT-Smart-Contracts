@@ -45,7 +45,8 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
         bool isListedForBreeding; // 1 byte
         uint8 growthStrength; // 1 byte    // min value: 1, max value: 10
         string trunk_color; // 1 byte per char
-        string leaves_color; // 1 byte per char
+        string leaf_primary_color; // 1 byte per char
+        string leaf_secondary_color; // 1 byte per char
         uint256 tokenId; // 32 bytes
         uint256 birthday_timestamp; // 32 bytes
         uint256 last_picked_apple_timestamp; // 32 bytes
@@ -56,7 +57,7 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
         uint256 growthSpeed; // 32 bytes  // min value, 6 hours - max value - 7 days
     }
 
-    constructor(address _APPLE_address) ERC721("Trees Knees", "TREE3") {
+    constructor(address _APPLE_address) ERC721("APPLE TREE", "APPLETREE") {
         APPLE_address = _APPLE_address;
     }
 
@@ -147,23 +148,40 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
             (trees[mate_tree_token].breedingPrice * breedingCommision) / 100
         );
 
-        uint256 offspring_generation = 1 + trees[mate_tree_token].gen >=
-            trees[my_tree_token].gen
-            ? trees[mate_tree_token].gen
-            : trees[my_tree_token].gen;
+        uint256 offspring_generation = 1 +
+            (
+                trees[mate_tree_token].gen >= trees[my_tree_token].gen
+                    ? trees[mate_tree_token].gen
+                    : trees[my_tree_token].gen
+            );
+
         uint256 offspring_growth_speed = (trees[mate_tree_token].growthSpeed +
             trees[my_tree_token].growthSpeed) / 2;
+
         uint8 offspring_growth_strength = (trees[mate_tree_token]
             .growthStrength + trees[my_tree_token].growthStrength) / 2;
+
         uint256 offspring_sapling_growth_time = (trees[mate_tree_token]
             .sapling_growth_time + trees[my_tree_token].sapling_growth_time) /
             2;
 
         // TODO - find "average" of colors and styles...
-        string memory offspring_trunk_color = trees[mate_tree_token]
-            .trunk_color;
-        string memory offspring_leaves_color = trees[mate_tree_token]
-            .leaves_color;
+        string memory offspring_trunk_color = TREE_helpers.averageOfColors(
+            trees[mate_tree_token].trunk_color,
+            trees[my_tree_token].trunk_color
+        );
+
+        string memory offspring_leaf_primary_color = TREE_helpers
+            .averageOfColors(
+                trees[mate_tree_token].leaf_primary_color,
+                trees[my_tree_token].leaf_primary_color
+            );
+
+        string memory offspring_leaf_secondary_color = TREE_helpers
+            .averageOfColors(
+                trees[mate_tree_token].leaf_secondary_color,
+                trees[my_tree_token].leaf_secondary_color
+            );
 
         _safeMint(msg.sender, next_tree_token_id);
 
@@ -172,7 +190,8 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
             false,
             offspring_growth_strength,
             offspring_trunk_color,
-            offspring_leaves_color,
+            offspring_leaf_primary_color,
+            offspring_leaf_secondary_color,
             next_tree_token_id,
             block.timestamp,
             block.timestamp,
@@ -297,7 +316,8 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
         uint8 growthStrength,
         uint256 sapling_growth_time,
         string memory trunk_color,
-        string memory leaves_color
+        string memory leaf_primary_color,
+        string memory leaf_secondary_color
     ) external onlyOwner {
         require(
             gen_zeros_minted < gen_zeros_max_supply,
@@ -311,7 +331,8 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
             false,
             growthStrength,
             trunk_color,
-            leaves_color,
+            leaf_primary_color,
+            leaf_secondary_color,
             next_tree_token_id,
             block.timestamp,
             block.timestamp,
@@ -392,10 +413,15 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
                 string(
                     abi.encodePacked(
                         '{"name": "',
-                        'TREE #', TREE_helpers.uint2str(tokenId),
+                        "TREE #",
+                        TREE_helpers.uint2str(tokenId),
                         '",',
                         '"image_data": "',
-                        TREE_helpers.getSvg(trees[tokenId].trunk_color),
+                        TREE_helpers.getSvg(
+                            trees[tokenId].trunk_color,
+                            trees[tokenId].leaf_primary_color,
+                            trees[tokenId].leaf_secondary_color
+                        ),
                         '",',
                         '"description": "A nice little description...",',
                         '"attributes": [',
@@ -406,16 +432,31 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
                         TREE_helpers.uint2str(trees[tokenId].growthSpeed),
                         "},",
                         '{"trait_type": "Sapling Growth Time", "value": ',
-                        TREE_helpers.uint2str(trees[tokenId].sapling_growth_time),
+                        TREE_helpers.uint2str(
+                            trees[tokenId].sapling_growth_time
+                        ),
                         "},",
                         '{"display_type": "date", "trait_type": "Birthday", "value": ',
-                        TREE_helpers.uint2str(trees[tokenId].birthday_timestamp),
-                        '},',
-                        '{"trait_type": "Leaf Color", "value": "',
-                        trees[tokenId].leaves_color,
+                        TREE_helpers.uint2str(
+                            trees[tokenId].birthday_timestamp
+                        ),
+                        "},",
+                        '{"display_type": "date", "trait_type": "Last Picked APPLE", "value": ',
+                        TREE_helpers.uint2str(
+                            trees[tokenId].last_picked_apple_timestamp
+                        ),
+                        "},",
+                        '{"display_type": "number", "trait_type": "Generation", "value": "',
+                        TREE_helpers.uint2str(trees[tokenId].gen),
                         '"},',
-                        '{"trait_type": "Trunk Color", "value": "',
+                        '{"trait_type": "Trunk", "value": "',
                         trees[tokenId].trunk_color,
+                        '"},',
+                        '{"trait_type": "Leaf Primary", "value": "',
+                        trees[tokenId].leaf_primary_color,
+                        '"},',
+                        '{"trait_type": "Leaf Secondary", "value": "',
+                        trees[tokenId].leaf_secondary_color,
                         '"}', // no comma here
                         "]}"
                     )

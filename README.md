@@ -117,3 +117,15 @@ Join the telegram [support chat 💬](https://t.me/joinchat/KByvmRe5wkR-8F_zz6Aj
 ### Automated with Gitpod
 
 [![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#github.com/scaffold-eth/scaffold-eth)
+
+
+## Deployment Process
+
+1) Deploy APPLE contract
+
+2) Deploy TREE contract, passing in APPLE address
+
+3) Update APPLE contract's TREE address
+
+4) Mint gen zero TREE(s)
+

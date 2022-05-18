@@ -395,7 +395,7 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
                         'TREE #', TREE_helpers.uint2str(tokenId),
                         '",',
                         '"image_data": "',
-                        TREE_helpers.getSvg("brown"),
+                        TREE_helpers.getSvg(trees[tokenId].trunk_color),
                         '",',
                         '"description": "A nice little description...",',
                         '"attributes": [',

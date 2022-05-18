@@ -15,20 +15,15 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
     address public APPLE_address;
 
-    uint256 gen_zeros_minted;
-    uint256 constant gen_zeros_max_supply = 10000;
+    uint16 constant gen_zeros_max_supply = 10000; // 8 bytes, max value 65535
 
     uint8 constant salesCommision = 2;
     uint8 constant breedingCommision = 2;
 
+    uint256 gen_zeros_minted;
+
     uint256 next_tree_for_sale_index;
     uint256 next_tree_for_breeding_index;
-    // uses tree index
-    uint256[] public trees_for_sale;
-
-    // uses tree index
-    uint256[] public trees_for_breeding;
-
     uint256 next_tree_token_id = 1;
 
     // tokenId => for_sale_index
@@ -37,28 +32,32 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
     // tokenId => for_sale_index
     mapping(uint256 => uint256) trees_for_breeding_index;
 
-    struct TreeData {
-        bool isForSale;
-        bool isListedForBreeding;
-        uint256 tokenId;
-        uint256 birthday_timestamp;
-        uint256 last_picked_apple_timestamp;
-        uint256 sapling_growth_time;
-        uint256 sellingPrice;
-        uint256 breedingPrice;
-        uint256 gen;
-        uint256 growthSpeed;
-        uint256 growthStrength;
-        string trunk_color;
-        string trunk_style;
-        string leaves_color;
-        string leaves_style;
-    }
-
     mapping(uint256 => TreeData) trees;
 
-    constructor() ERC721("Trees2", "TREE2") {
-        // Do nothing on delpoy...
+    // uses tree index
+    uint256[] public trees_for_sale;
+
+    // uses tree index
+    uint256[] public trees_for_breeding;
+
+    struct TreeData {
+        bool isForSale; // 1 byte
+        bool isListedForBreeding; // 1 byte
+        uint8 growthStrength; // 1 byte    // min value: 1, max value: 10
+        string trunk_color; // 1 byte per char
+        string leaves_color; // 1 byte per char
+        uint256 tokenId; // 32 bytes
+        uint256 birthday_timestamp; // 32 bytes
+        uint256 last_picked_apple_timestamp; // 32 bytes
+        uint256 sapling_growth_time; // 32 bytes
+        uint256 sellingPrice; // 32 bytes
+        uint256 breedingPrice; // 32 bytes
+        uint256 gen; // 32 bytes
+        uint256 growthSpeed; // 32 bytes  // min value, 6 hours - max value - 7 days
+    }
+
+    constructor(address _APPLE_address) ERC721("Trees Knees", "TREE3") {
+        APPLE_address = _APPLE_address;
     }
 
     function pick_APPLEs(uint256 tree_token_id) external whenNotPaused {
@@ -71,14 +70,14 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
             block.timestamp >
                 (trees[tree_token_id].birthday_timestamp +
                     trees[tree_token_id].sapling_growth_time)
-                    // ,"This TREE is still a wee sapling!"
+            // ,"This TREE is still a wee sapling!"
         );
 
         require(
             block.timestamp >
                 (trees[tree_token_id].last_picked_apple_timestamp +
                     trees[tree_token_id].growthSpeed)
-                    // ,"The APPLE on this TREE is not done growing yet!"
+            // ,"The APPLE on this TREE is not done growing yet!"
         );
 
         trees[tree_token_id].last_picked_apple_timestamp = block.timestamp;
@@ -154,7 +153,7 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
             : trees[my_tree_token].gen;
         uint256 offspring_growth_speed = (trees[mate_tree_token].growthSpeed +
             trees[my_tree_token].growthSpeed) / 2;
-        uint256 offspring_growth_strength = (trees[mate_tree_token]
+        uint8 offspring_growth_strength = (trees[mate_tree_token]
             .growthStrength + trees[my_tree_token].growthStrength) / 2;
         uint256 offspring_sapling_growth_time = (trees[mate_tree_token]
             .sapling_growth_time + trees[my_tree_token].sapling_growth_time) /
@@ -163,18 +162,17 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
         // TODO - find "average" of colors and styles...
         string memory offspring_trunk_color = trees[mate_tree_token]
             .trunk_color;
-        string memory offspring_trunk_style = trees[mate_tree_token]
-            .trunk_style;
         string memory offspring_leaves_color = trees[mate_tree_token]
             .leaves_color;
-        string memory offspring_leaves_style = trees[mate_tree_token]
-            .leaves_style;
 
         _safeMint(msg.sender, next_tree_token_id);
 
         trees[next_tree_token_id] = TreeData(
             false,
             false,
+            offspring_growth_strength,
+            offspring_trunk_color,
+            offspring_leaves_color,
             next_tree_token_id,
             block.timestamp,
             block.timestamp,
@@ -182,12 +180,7 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
             0,
             0,
             offspring_generation,
-            offspring_growth_speed,
-            offspring_growth_strength,
-            offspring_trunk_color,
-            offspring_trunk_style,
-            offspring_leaves_color,
-            offspring_leaves_style
+            offspring_growth_speed
         );
 
         next_tree_token_id++;
@@ -239,7 +232,10 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
     function purchase(uint256 tree_token_id) external whenNotPaused {
         // address current_owner = ownerOf(tree_token_id);
 
-        require(msg.sender != ownerOf(tree_token_id), "Can't buy your own TREE!");
+        require(
+            msg.sender != ownerOf(tree_token_id),
+            "Can't buy your own TREE!"
+        );
         require(
             trees[tree_token_id].isForSale,
             "Can't buy a TREE that isn't for sale!"
@@ -298,12 +294,10 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
     function list_gen_zero(
         uint256 listingPrice,
         uint256 growthSpeed,
-        uint256 growthStrength,
+        uint8 growthStrength,
         uint256 sapling_growth_time,
         string memory trunk_color,
-        string memory trunk_style,
-        string memory leaves_color,
-        string memory leaves_style
+        string memory leaves_color
     ) external onlyOwner {
         require(
             gen_zeros_minted < gen_zeros_max_supply,
@@ -315,6 +309,9 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
         trees[next_tree_token_id] = TreeData(
             true,
             false,
+            growthStrength,
+            trunk_color,
+            leaves_color,
             next_tree_token_id,
             block.timestamp,
             block.timestamp,
@@ -322,12 +319,7 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
             listingPrice,
             0,
             0,
-            growthSpeed,
-            growthStrength,
-            trunk_color,
-            trunk_style,
-            leaves_color,
-            leaves_style
+            growthSpeed
         );
 
         trees_for_sale.push(next_tree_token_id);
@@ -342,83 +334,95 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
     // function tokenURI(uint256 tokenId)
     //     public
     //     view
-    //     override
+    //     override(ERC721)
     //     returns (string memory)
     // {
-    //     // string memory json = 
-
-    //     return string(abi.encodePacked("data:application/json;base64,", Base64.encode(
+    //     string memory json = Base64.encode(
     //         bytes(
     //             string(
     //                 abi.encodePacked(
-    //                     "{",
-    //                     '"name": "TREEEE",',
-    //                     '"description": "Some interesting description...",',
+    //                     '{"name": "',
+    //                     "NAME",
+    //                     '",',
     //                     '"image_data": "',
-    //                     TREE_helpers.getSvg(trees[tokenId].trunk_color),
-    //                     '"',
-    //                     // '"attributes": [{',
-    //                     // '"birthday": ',
-    //                     // Strings.toString(trees[tokenId].birthday_timestamp),
-    //                     // // trees[tokenId].birthday_timestamp,
-    //                     // "},{",
-    //                     // '"last picked": ',
-    //                     // Strings.toString(
-    //                     //     trees[tokenId].last_picked_apple_timestamp
-    //                     // ),
-    //                     // "},{",
-    //                     // '"generation": ',
-    //                     // Strings.toString(
-    //                     //     trees[tokenId].gen
-    //                     //     ),
-    //                     // "},{",
-    //                     // '"growth speed": ',
-    //                     // Strings.toString(
-    //                     //     trees[tokenId].growthSpeed
-    //                     //     ),
-    //                     // "},{",
-    //                     // '"growth strength": ',
-    //                     // Strings.toString(
-    //                     //     trees[tokenId].growthStrength
-    //                     //     ),
-    //                     // "},{",
-    //                     // '"trunk color": "',
-    //                     // trees[tokenId].trunk_color,
-    //                     // '"},{',
-    //                     // '"trunk style": "',
-    //                     // trees[tokenId].trunk_style,
-    //                     // '"},{',
-    //                     // '"leaves color": "',
-    //                     // trees[tokenId].leaves_color,
-    //                     // '"},{',
-    //                     // '"leaves style": "',
-    //                     // trees[tokenId].leaves_style,
-    //                     // '"',
-    //                     // "}]",
-    //                     "}"
+    //                     TREE_helpers.getSvg("brown"),
+    //                     '",',
+    //                     '"attributes": [{"trait_type": "Speed", "value": ',
+    //                     TREE_helpers.uint2str(42),
+    //                     "},",
+    //                     '{"trait_type": "Attack", "value": ',
+    //                     TREE_helpers.uint2str(55),
+    //                     "},",
+    //                     '{"trait_type": "Defence", "value": ',
+    //                     TREE_helpers.uint2str(1000),
+    //                     "},",
+    //                     '{"trait_type": "Growth Strength", "value": ',
+    //                     TREE_helpers.uint2str(trees[tokenId].growthStrength),
+    //                     "},",
+    //                     '{"trait_type": "Growth Speed", "value": ',
+    //                     TREE_helpers.uint2str(trees[tokenId].growthSpeed),
+    //                     "},",
+    //                     '{"trait_type": "Sapling Growth Time", "value": ',
+    //                     TREE_helpers.uint2str(
+    //                         trees[tokenId].sapling_growth_time
+    //                     ),
+    //                     "},",
+    //                     '{"trait_type": "Leaves Color", "value": "',
+    //                     trees[tokenId].leaves_color,
+    //                     '"}',
+    //                     '{"trait_type": "Trunk Color", "value": "',
+    //                     trees[tokenId].trunk_color,
+    //                     '"}',
+    //                     "]}"
     //                 )
     //             )
     //         )
-    //     )));
+    //     );
+    //     return string(abi.encodePacked("data:application/json;base64,", json));
     // }
 
-    function tokenURI(uint256 tokenId) override(ERC721) public view returns (string memory) {
+    function tokenURI(uint256 tokenId)
+        public
+        view
+        override(ERC721)
+        returns (string memory)
+    {
         string memory json = Base64.encode(
-            bytes(string(
-                abi.encodePacked(
-                    '{"name": "', "NAME", '",',
-                    '"image_data": "', 
-                    TREE_helpers.getSvg("brown"), 
-                    '",',
-                    '"attributes": [{"trait_type": "Speed", "value": ', TREE_helpers.uint2str(42), '},',
-                    '{"trait_type": "Attack", "value": ', TREE_helpers.uint2str(55), '},',
-                    '{"trait_type": "Defence", "value": ', TREE_helpers.uint2str(1000), '},',
-                    '{"trait_type": "Material", "value": "', "Foo", '"}',
-                    ']}'
+            bytes(
+                string(
+                    abi.encodePacked(
+                        '{"name": "',
+                        'TREE #', TREE_helpers.uint2str(tokenId),
+                        '",',
+                        '"image_data": "',
+                        TREE_helpers.getSvg("brown"),
+                        '",',
+                        '"description": "A nice little description...",',
+                        '"attributes": [',
+                        '{"trait_type": "Growth Strength", "value": ',
+                        TREE_helpers.uint2str(trees[tokenId].growthStrength),
+                        "},",
+                        '{"trait_type": "Growth Speed", "value": ',
+                        TREE_helpers.uint2str(trees[tokenId].growthSpeed),
+                        "},",
+                        '{"trait_type": "Sapling Growth Time", "value": ',
+                        TREE_helpers.uint2str(trees[tokenId].sapling_growth_time),
+                        "},",
+                        '{"display_type": "date", "trait_type": "Birthday", "value": ',
+                        TREE_helpers.uint2str(trees[tokenId].birthday_timestamp),
+                        '},',
+                        '{"trait_type": "Leaf Color", "value": "',
+                        trees[tokenId].leaves_color,
+                        '"},',
+                        '{"trait_type": "Trunk Color", "value": "',
+                        trees[tokenId].trunk_color,
+                        '"}', // no comma here
+                        "]}"
+                    )
                 )
-            ))
+            )
         );
-        return string(abi.encodePacked('data:application/json;base64,', json));
+        return string(abi.encodePacked("data:application/json;base64,", json));
     }
 
     // function getTreesForSale() external view returns (uint256[] memory) {

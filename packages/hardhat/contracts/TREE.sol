@@ -1,4 +1,4 @@
-pragma solidity >=0.8.0 <0.9.0;
+pragma solidity >=0.8.13 <0.9.0;
 //SPDX-License-Identifier: MIT
 
 import "./APPLE.sol";
@@ -16,18 +16,18 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
     address public APPLE_address;
 
     uint256 gen_zeros_minted;
-    uint256 gen_zeros_max_supply = 10000;
+    uint256 constant gen_zeros_max_supply = 10000;
 
-    uint256 salesCommision = 2;
-    uint256 breedingCommision = 2;
+    uint8 constant salesCommision = 2;
+    uint8 constant breedingCommision = 2;
 
     uint256 next_tree_for_sale_index;
     uint256 next_tree_for_breeding_index;
     // uses tree index
-    uint256[] trees_for_sale;
+    uint256[] public trees_for_sale;
 
     // uses tree index
-    uint256[] trees_for_breeding;
+    uint256[] public trees_for_breeding;
 
     uint256 next_tree_token_id = 1;
 
@@ -63,22 +63,22 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
 
     function pick_APPLEs(uint256 tree_token_id) external whenNotPaused {
         require(
-            msg.sender == ownerOf(tree_token_id),
-            "You are not the TREE owner!"
+            msg.sender == ownerOf(tree_token_id)
+            // ,"You are not the TREE owner!"
         );
 
         require(
             block.timestamp >
                 (trees[tree_token_id].birthday_timestamp +
-                    trees[tree_token_id].sapling_growth_time),
-            "This TREE is still a wee sapling!"
+                    trees[tree_token_id].sapling_growth_time)
+                    // ,"This TREE is still a wee sapling!"
         );
 
         require(
             block.timestamp >
                 (trees[tree_token_id].last_picked_apple_timestamp +
-                    trees[tree_token_id].growthSpeed),
-            "The APPLE on this TREE is not done growing yet!"
+                    trees[tree_token_id].growthSpeed)
+                    // ,"The APPLE on this TREE is not done growing yet!"
         );
 
         trees[tree_token_id].last_picked_apple_timestamp = block.timestamp;
@@ -115,17 +115,20 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
         uint256 mate_tree_token
     ) external whenNotPaused {
         require(
-            trees[mate_tree_token].isListedForBreeding,
-            "That TREE is not listed for breeding!"
+            trees[mate_tree_token].isListedForBreeding
+            // ,
+            // "That TREE is not listed for breeding!"
         );
         require(
-            ownerOf(my_tree_token) == msg.sender,
-            "You are not the TREE owner!"
+            ownerOf(my_tree_token) == msg.sender
+            // ,
+            // "You are not the TREE owner!"
         );
 
         require(
-            balanceOf(msg.sender) >= trees[mate_tree_token].breedingPrice,
-            "You don't have enough APPLEs to pay the breeding cost!"
+            balanceOf(msg.sender) >= trees[mate_tree_token].breedingPrice
+            // ,
+            // "You don't have enough APPLEs to pay the breeding cost!"
         );
 
         // transfer APPLE payment
@@ -234,9 +237,9 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
     }
 
     function purchase(uint256 tree_token_id) external whenNotPaused {
-        address current_owner = ownerOf(tree_token_id);
+        // address current_owner = ownerOf(tree_token_id);
 
-        require(msg.sender != current_owner, "Can't buy your own TREE!");
+        require(msg.sender != ownerOf(tree_token_id), "Can't buy your own TREE!");
         require(
             trees[tree_token_id].isForSale,
             "Can't buy a TREE that isn't for sale!"
@@ -254,7 +257,7 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
         );
         APPLE(APPLE_address).transferFrom(
             msg.sender,
-            current_owner,
+            ownerOf(tree_token_id),
             (trees[tree_token_id].sellingPrice * (100 - salesCommision)) / 100
         );
         APPLE(APPLE_address).transferFrom(
@@ -264,7 +267,7 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
         );
 
         // transfer TREE NFT to the buyer
-        _transfer(current_owner, msg.sender, tree_token_id);
+        _transfer(ownerOf(tree_token_id), msg.sender, tree_token_id);
     }
 
     function cancel_for_sale(uint256 tokenId) external whenNotPaused {
@@ -336,63 +339,86 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
         APPLE_address = newTreeAddress;
     }
 
-    function tokenURI(uint256 tokenId)
-        public
-        view
-        override
-        returns (string memory)
-    {
-        string memory json = Base64.encode(
-            bytes(
-                string(
-                    abi.encodePacked(
-                        "{",
-                        '"name": "TREE",',
-                        '"description": "Some interesting description...",',
-                        '"image_data": "',
-                        TREE_helpers.getSvg(
-                            tokenId,
-                            trees[tokenId].trunk_color
-                        ),
-                        '",',
-                        '"attributes": [{',
-                        '"birthday": ',
-                        Strings.toString(trees[tokenId].birthday_timestamp),
-                        "},{",
-                        '"last picked": ',
-                        Strings.toString(
-                            trees[tokenId].last_picked_apple_timestamp
-                        ),
-                        "},{",
-                        '"generation": ',
-                        Strings.toString(trees[tokenId].gen),
-                        "},{",
-                        '"growth speed": ',
-                        Strings.toString(trees[tokenId].growthSpeed),
-                        "},{",
-                        '"growth strength": ',
-                        Strings.toString(trees[tokenId].growthStrength),
-                        "},{",
-                        '"trunk color": "',
-                        trees[tokenId].trunk_color,
-                        '"},{',
-                        '"trunk style": "',
-                        trees[tokenId].trunk_style,
-                        '"},{',
-                        '"leaves color": "',
-                        trees[tokenId].leaves_color,
-                        '"},{',
-                        '"leaves style": "',
-                        trees[tokenId].leaves_style,
-                        '"',
-                        "}]",
-                        "}"
-                    )
-                )
-            )
-        );
+    // function tokenURI(uint256 tokenId)
+    //     public
+    //     view
+    //     override
+    //     returns (string memory)
+    // {
+    //     // string memory json = 
 
-        return string(abi.encodePacked("data:application/json;base64,", json));
+    //     return string(abi.encodePacked("data:application/json;base64,", Base64.encode(
+    //         bytes(
+    //             string(
+    //                 abi.encodePacked(
+    //                     "{",
+    //                     '"name": "TREEEE",',
+    //                     '"description": "Some interesting description...",',
+    //                     '"image_data": "',
+    //                     TREE_helpers.getSvg(trees[tokenId].trunk_color),
+    //                     '"',
+    //                     // '"attributes": [{',
+    //                     // '"birthday": ',
+    //                     // Strings.toString(trees[tokenId].birthday_timestamp),
+    //                     // // trees[tokenId].birthday_timestamp,
+    //                     // "},{",
+    //                     // '"last picked": ',
+    //                     // Strings.toString(
+    //                     //     trees[tokenId].last_picked_apple_timestamp
+    //                     // ),
+    //                     // "},{",
+    //                     // '"generation": ',
+    //                     // Strings.toString(
+    //                     //     trees[tokenId].gen
+    //                     //     ),
+    //                     // "},{",
+    //                     // '"growth speed": ',
+    //                     // Strings.toString(
+    //                     //     trees[tokenId].growthSpeed
+    //                     //     ),
+    //                     // "},{",
+    //                     // '"growth strength": ',
+    //                     // Strings.toString(
+    //                     //     trees[tokenId].growthStrength
+    //                     //     ),
+    //                     // "},{",
+    //                     // '"trunk color": "',
+    //                     // trees[tokenId].trunk_color,
+    //                     // '"},{',
+    //                     // '"trunk style": "',
+    //                     // trees[tokenId].trunk_style,
+    //                     // '"},{',
+    //                     // '"leaves color": "',
+    //                     // trees[tokenId].leaves_color,
+    //                     // '"},{',
+    //                     // '"leaves style": "',
+    //                     // trees[tokenId].leaves_style,
+    //                     // '"',
+    //                     // "}]",
+    //                     "}"
+    //                 )
+    //             )
+    //         )
+    //     )));
+    // }
+
+    function tokenURI(uint256 tokenId) override(ERC721) public view returns (string memory) {
+        string memory json = Base64.encode(
+            bytes(string(
+                abi.encodePacked(
+                    '{"name": "', "NAME", '",',
+                    '"image_data": "', 
+                    TREE_helpers.getSvg("brown"), 
+                    '",',
+                    '"attributes": [{"trait_type": "Speed", "value": ', TREE_helpers.uint2str(42), '},',
+                    '{"trait_type": "Attack", "value": ', TREE_helpers.uint2str(55), '},',
+                    '{"trait_type": "Defence", "value": ', TREE_helpers.uint2str(1000), '},',
+                    '{"trait_type": "Material", "value": "', "Foo", '"}',
+                    ']}'
+                )
+            ))
+        );
+        return string(abi.encodePacked('data:application/json;base64,', json));
     }
 
     // function getTreesForSale() external view returns (uint256[] memory) {

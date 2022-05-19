@@ -129,3 +129,9 @@ Join the telegram [support chat 💬](https://t.me/joinchat/KByvmRe5wkR-8F_zz6Aj
 
 4) Mint gen zero TREE(s)
 
+
+Colors:
+
+brown -         "#9B4209"
+light green -   "#41E857"
+dk green -      "#026C1A"

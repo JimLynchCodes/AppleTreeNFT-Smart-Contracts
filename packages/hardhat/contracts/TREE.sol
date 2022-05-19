@@ -286,12 +286,16 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
         cancel_for_sale(tree_token_id);
 
         // transfer TREE NFT to the buyer
+        if (ownerOf(tree_token_id) != address(this)) {
+            approve(ownerOf(tree_token_id), tree_token_id);
+            // transferFrom(ownerOf(tree_token_id), msg.sender, tree_token_id);
+        }
+        
         _transfer(ownerOf(tree_token_id), msg.sender, tree_token_id);
     }
 
     function cancel_for_sale(uint256 tokenId) public whenNotPaused {
         // gives approval rights back to the current owner.
-        approve(ownerOf(tokenId), tokenId);
 
         trees[tokenId].isForSale = false;
 
@@ -348,8 +352,11 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
         );
 
         trees_for_sale.push(next_tree_token_id);
-
+        
+        trees_for_sale_index[next_tree_token_id] = next_tree_for_sale_index;
+        next_tree_for_sale_index++;
         next_tree_token_id++;
+
     }
 
     function update_APPLE_address(address newTreeAddress) external onlyOwner {

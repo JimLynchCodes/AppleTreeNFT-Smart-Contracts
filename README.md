@@ -136,6 +136,10 @@ brown -         "#9B4209"
 light green -   "#41E857"
 dk green -      "#026C1A"
 
-light brown -     "#DF8A31"
-light blue -      "#85DAFF"
-dk blue -         "#154491"
+light brown -    "#DF8A31"
+light blue -     "#85DAFF"
+dk blue -        "#154491"
+
+light pink -     "#EE2CE7"
+dk pink -        "#93048E"
+gray -           "#BCB8BC"

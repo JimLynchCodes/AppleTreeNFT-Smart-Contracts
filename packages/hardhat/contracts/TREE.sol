@@ -21,8 +21,8 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
     uint8 constant salesCommision = 2;
     uint8 constant breedingCommision = 2;
 
-    uint256 constant MIN_STRENGTH = 1;                    
-    uint256 constant MAX_STRENGTH = 10;                   
+    uint8 constant MIN_STRENGTH = 1;
+    uint8 constant MAX_STRENGTH = 10;
 
     // uint256 constant MIN_GROWTH_SPEED = ;           // 6 hours in ms
     // uint256 constant MAX_GROWTH_SPEED = ;          //  1 week hours in ms
@@ -31,17 +31,17 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
     // uint256 constant MAX_SAPLING_GROWN_TIME = 604800000;    // 30 days in ms
 
     // Debugging values
-    uint256 constant MIN_GROWTH_SPEED = 0;          
-    uint256 constant MAX_GROWTH_SPEED = 604800000000000;          // a lot
+    uint256 constant MIN_GROWTH_SPEED = 0;
+    uint256 constant MAX_GROWTH_SPEED = 604800000000000; // a lot
 
-    uint256 constant MIN_SAPLING_GROWN_TIME = 0;     
-    uint256 constant MAX_SAPLING_GROWN_TIME = 60480000000000000000;    // 1 week hours in ms
+    uint256 constant MIN_SAPLING_GROWN_TIME = 0;
+    uint256 constant MAX_SAPLING_GROWN_TIME = 60480000000000000000; // 1 week hours in ms
 
     uint256 gen_zeros_minted;
 
     uint256 next_tree_for_sale_index;
     uint256 next_tree_for_breeding_index;
-    uint256 next_tree_token_id = 1;
+    uint256 public next_tree_token_id = 1;
 
     // tokenId => for_sale_index
     mapping(uint256 => uint256) trees_for_sale_index;
@@ -238,14 +238,14 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
         trees_for_breeding[old_token_for_sale_index] = trees_for_breeding[
             next_tree_for_breeding_index - 1
         ];
-        
+
         trees_for_breeding_index[
             last_element_token_id
         ] = old_token_for_sale_index;
 
         // pop off the end
         trees_for_breeding.pop();
-        
+
         next_tree_for_breeding_index--;
     }
 
@@ -305,10 +305,10 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
         cancel_for_sale(tree_token_id);
 
         // if (ownerOf(tree_token_id) != address(this)) {
-            // approve(ownerOf(tree_token_id), tree_token_id);
-            // transferFrom(ownerOf(tree_token_id), msg.sender, tree_token_id);
+        // approve(ownerOf(tree_token_id), tree_token_id);
+        // transferFrom(ownerOf(tree_token_id), msg.sender, tree_token_id);
         // }
-        
+
         // transfer TREE NFT to the buyer
         _transfer(ownerOf(tree_token_id), msg.sender, tree_token_id);
     }
@@ -322,10 +322,14 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
 
         uint256 old_token_for_sale_index = trees_for_sale_index[tokenId];
 
-        uint256 last_element_token_id = trees_for_sale[next_tree_for_sale_index - 1];
+        uint256 last_element_token_id = trees_for_sale[
+            next_tree_for_sale_index - 1
+        ];
 
         // set last index value overwriting the element to delete
-        trees_for_sale[old_token_for_sale_index] = trees_for_sale[next_tree_for_sale_index - 1];
+        trees_for_sale[old_token_for_sale_index] = trees_for_sale[
+            next_tree_for_sale_index - 1
+        ];
 
         // update the map keeping track of indexes
         trees_for_sale_index[last_element_token_id] = old_token_for_sale_index;
@@ -338,27 +342,39 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
 
     // admin functions
     function list_gen_zero(
+        bool listForSale,
         uint256 listingPrice,
         uint256 growthSpeed,
         uint8 growthStrength,
         uint256 sapling_growth_time,
         string memory trunk_color,
         string memory leaf_primary_color,
-        string memory leaf_secondary_color
+        string memory leaf_secondary_color,
+        address beneficiary
     ) external onlyOwner {
         require(
             gen_zeros_minted < gen_zeros_max_supply,
             "The max number of gen zero TREEs have been minted!"
         );
 
-        require(growthSpeed >= MIN_GROWTH_SPEED && growthSpeed <= MAX_GROWTH_SPEED, "bad growthSpeed");
-        require(growthStrength >= MIN_STRENGTH && growthStrength <= MAX_STRENGTH, "bad growthStrength");
-        require(sapling_growth_time >= MIN_SAPLING_GROWN_TIME && sapling_growth_time <= MIN_SAPLING_GROWN_TIME, "bad sapling time");
+        require(
+            growthSpeed >= MIN_GROWTH_SPEED && growthSpeed <= MAX_GROWTH_SPEED
+            // , "bad growthSpeed"
+        );
+        require(
+            growthStrength >= MIN_STRENGTH && growthStrength <= MAX_STRENGTH
+            // , "bad growthStrength"
+        );
+        require(
+            sapling_growth_time >= MIN_SAPLING_GROWN_TIME &&
+                sapling_growth_time <= MAX_SAPLING_GROWN_TIME
+            // , "bad sapling time"
+        );
 
-        _safeMint(address(this), next_tree_token_id);
+        _safeMint(beneficiary, next_tree_token_id);
 
         trees[next_tree_token_id] = TreeData(
-            true,
+            listForSale,
             false,
             growthStrength,
             trunk_color,
@@ -374,12 +390,14 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
             growthSpeed
         );
 
-        trees_for_sale.push(next_tree_token_id);
-        
-        trees_for_sale_index[next_tree_token_id] = next_tree_for_sale_index;
-        next_tree_for_sale_index++;
-        next_tree_token_id++;
+        if (listForSale) {
+            trees_for_sale.push(next_tree_token_id);
 
+            trees_for_sale_index[next_tree_token_id] = next_tree_for_sale_index;
+            next_tree_for_sale_index++;
+        }
+
+        next_tree_token_id++;
     }
 
     function update_APPLE_address(address newTreeAddress) external onlyOwner {
@@ -415,9 +433,7 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
                         ),
                         "},",
                         '{"trait_type": "Growth Speed", "value": ',
-                        TREE_helpers.uintToString(
-                            trees[tokenId].growthSpeed
-                        ),
+                        TREE_helpers.uintToString(trees[tokenId].growthSpeed),
                         "},",
                         '{"trait_type": "Sapling Growth Time", "value": ',
                         TREE_helpers.uintToString(

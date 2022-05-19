@@ -287,8 +287,8 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
             "Can't buy your own TREE!"
         );
         require(
-            trees[tree_token_id].isForSale,
-            "Can't buy a TREE that isn't for sale!"
+            trees[tree_token_id].isForSale
+            //,  "Can't buy a TREE that isn't for sale!"
         );
         require(
             APPLE(APPLE_address).balanceOf(msg.sender) >=

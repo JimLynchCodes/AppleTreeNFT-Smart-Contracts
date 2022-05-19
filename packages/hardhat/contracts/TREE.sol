@@ -35,16 +35,16 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
     mapping(uint256 => TreeData) trees;
 
     // uses tree index
-    uint256[] public trees_for_sale;
+    uint256[] trees_for_sale;
 
     // uses tree index
-    uint256[] public trees_for_breeding;
+    uint256[] trees_for_breeding;
 
     struct TreeData {
         bool isForSale; // 1 byte
         bool isListedForBreeding; // 1 byte
         uint8 growthStrength; // 1 byte    // min value: 1, max value: 10
-        string trunk_color; // 1 byte per char
+        string trunk_color;        // 1 byte per char
         string leaf_primary_color; // 1 byte per char
         string leaf_secondary_color; // 1 byte per char
         uint256 tokenId; // 32 bytes
@@ -148,40 +148,30 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
             (trees[mate_tree_token].breedingPrice * breedingCommision) / 100
         );
 
-        uint256 offspring_generation = 1 +
-            (
-                trees[mate_tree_token].gen >= trees[my_tree_token].gen
-                    ? trees[mate_tree_token].gen
-                    : trees[my_tree_token].gen
-            );
+        uint256 offspring_generation = 1 + uint(trees[mate_tree_token].gen >=
+            trees[my_tree_token].gen
+            ? trees[mate_tree_token].gen
+            : trees[my_tree_token].gen);
 
         uint256 offspring_growth_speed = (trees[mate_tree_token].growthSpeed +
             trees[my_tree_token].growthSpeed) / 2;
 
         uint8 offspring_growth_strength = (trees[mate_tree_token]
             .growthStrength + trees[my_tree_token].growthStrength) / 2;
-
+            
         uint256 offspring_sapling_growth_time = (trees[mate_tree_token]
             .sapling_growth_time + trees[my_tree_token].sapling_growth_time) /
             2;
 
         // TODO - find "average" of colors and styles...
-        string memory offspring_trunk_color = TREE_helpers.averageOfColors(
-            trees[mate_tree_token].trunk_color,
-            trees[my_tree_token].trunk_color
-        );
+        string memory offspring_trunk_color = TREE_helpers.averageOfColors(trees[mate_tree_token]
+            .trunk_color, trees[my_tree_token].trunk_color);
 
-        string memory offspring_leaf_primary_color = TREE_helpers
-            .averageOfColors(
-                trees[mate_tree_token].leaf_primary_color,
-                trees[my_tree_token].leaf_primary_color
-            );
+        string memory offspring_leaf_primary_color = TREE_helpers.averageOfColors(trees[mate_tree_token]
+            .leaf_primary_color, trees[my_tree_token].leaf_primary_color);
 
-        string memory offspring_leaf_secondary_color = TREE_helpers
-            .averageOfColors(
-                trees[mate_tree_token].leaf_secondary_color,
-                trees[my_tree_token].leaf_secondary_color
-            );
+        string memory offspring_leaf_secondary_color = TREE_helpers.averageOfColors(trees[mate_tree_token]
+            .leaf_secondary_color, trees[my_tree_token].leaf_secondary_color);
 
         _safeMint(msg.sender, next_tree_token_id);
 
@@ -202,10 +192,12 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
             offspring_growth_speed
         );
 
+        cancel_breeding_listing(mate_tree_token);
+
         next_tree_token_id++;
     }
 
-    function cancel_breeding_listing(uint256 tokenId) external whenNotPaused {
+    function cancel_breeding_listing(uint256 tokenId) public whenNotPaused {
         trees[tokenId].isListedForBreeding = false;
 
         // swap n' pop removal from breeding array
@@ -281,11 +273,13 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
             (trees[tree_token_id].sellingPrice * salesCommision) / 100
         );
 
+        cancel_for_sale(tree_token_id);
+
         // transfer TREE NFT to the buyer
         _transfer(ownerOf(tree_token_id), msg.sender, tree_token_id);
     }
 
-    function cancel_for_sale(uint256 tokenId) external whenNotPaused {
+    function cancel_for_sale(uint256 tokenId) public whenNotPaused {
         // gives approval rights back to the current owner.
         approve(ownerOf(tokenId), tokenId);
 
@@ -352,55 +346,6 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
         APPLE_address = newTreeAddress;
     }
 
-    // function tokenURI(uint256 tokenId)
-    //     public
-    //     view
-    //     override(ERC721)
-    //     returns (string memory)
-    // {
-    //     string memory json = Base64.encode(
-    //         bytes(
-    //             string(
-    //                 abi.encodePacked(
-    //                     '{"name": "',
-    //                     "NAME",
-    //                     '",',
-    //                     '"image_data": "',
-    //                     TREE_helpers.getSvg("brown"),
-    //                     '",',
-    //                     '"attributes": [{"trait_type": "Speed", "value": ',
-    //                     TREE_helpers.uint2str(42),
-    //                     "},",
-    //                     '{"trait_type": "Attack", "value": ',
-    //                     TREE_helpers.uint2str(55),
-    //                     "},",
-    //                     '{"trait_type": "Defence", "value": ',
-    //                     TREE_helpers.uint2str(1000),
-    //                     "},",
-    //                     '{"trait_type": "Growth Strength", "value": ',
-    //                     TREE_helpers.uint2str(trees[tokenId].growthStrength),
-    //                     "},",
-    //                     '{"trait_type": "Growth Speed", "value": ',
-    //                     TREE_helpers.uint2str(trees[tokenId].growthSpeed),
-    //                     "},",
-    //                     '{"trait_type": "Sapling Growth Time", "value": ',
-    //                     TREE_helpers.uint2str(
-    //                         trees[tokenId].sapling_growth_time
-    //                     ),
-    //                     "},",
-    //                     '{"trait_type": "Leaves Color", "value": "',
-    //                     trees[tokenId].leaves_color,
-    //                     '"}',
-    //                     '{"trait_type": "Trunk Color", "value": "',
-    //                     trees[tokenId].trunk_color,
-    //                     '"}',
-    //                     "]}"
-    //                 )
-    //             )
-    //         )
-    //     );
-    //     return string(abi.encodePacked("data:application/json;base64,", json));
-    // }
 
     function tokenURI(uint256 tokenId)
         public
@@ -413,15 +358,10 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
                 string(
                     abi.encodePacked(
                         '{"name": "',
-                        "TREE #",
-                        TREE_helpers.uint2str(tokenId),
+                        'TREE #', TREE_helpers.uint2str(tokenId),
                         '",',
                         '"image_data": "',
-                        TREE_helpers.getSvg(
-                            trees[tokenId].trunk_color,
-                            trees[tokenId].leaf_primary_color,
-                            trees[tokenId].leaf_secondary_color
-                        ),
+                        TREE_helpers.getSvg(trees[tokenId].trunk_color,trees[tokenId].leaf_primary_color,trees[tokenId].leaf_secondary_color),
                         '",',
                         '"description": "A nice little description...",',
                         '"attributes": [',
@@ -432,20 +372,14 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
                         TREE_helpers.uint2str(trees[tokenId].growthSpeed),
                         "},",
                         '{"trait_type": "Sapling Growth Time", "value": ',
-                        TREE_helpers.uint2str(
-                            trees[tokenId].sapling_growth_time
-                        ),
+                        TREE_helpers.uint2str(trees[tokenId].sapling_growth_time),
                         "},",
                         '{"display_type": "date", "trait_type": "Birthday", "value": ',
-                        TREE_helpers.uint2str(
-                            trees[tokenId].birthday_timestamp
-                        ),
-                        "},",
+                        TREE_helpers.uint2str(trees[tokenId].birthday_timestamp),
+                        '},',
                         '{"display_type": "date", "trait_type": "Last Picked APPLE", "value": ',
-                        TREE_helpers.uint2str(
-                            trees[tokenId].last_picked_apple_timestamp
-                        ),
-                        "},",
+                        TREE_helpers.uint2str(trees[tokenId].last_picked_apple_timestamp),
+                        '},',
                         '{"display_type": "number", "trait_type": "Generation", "value": "',
                         TREE_helpers.uint2str(trees[tokenId].gen),
                         '"},',
@@ -457,7 +391,7 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
                         '"},',
                         '{"trait_type": "Leaf Secondary", "value": "',
                         trees[tokenId].leaf_secondary_color,
-                        '"}', // no comma here
+                        '"}',  // no comma here
                         "]}"
                     )
                 )
@@ -466,15 +400,15 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
         return string(abi.encodePacked("data:application/json;base64,", json));
     }
 
-    // function getTreesForSale() external view returns (uint256[] memory) {
-    //     return trees_for_sale;
-    // }
+    function getTreesForSale() external view returns (uint256[] memory) {
+        return trees_for_sale;
+    }
 
-    // function getTreesListedForBreeding()
-    //     external
-    //     view
-    //     returns (uint256[] memory)
-    // {
-    //     return trees_for_breeding;
-    // }
+    function getTreesListedForBreeding()
+        external
+        view
+        returns (uint256[] memory)
+    {
+        return trees_for_breeding;
+    }
 }

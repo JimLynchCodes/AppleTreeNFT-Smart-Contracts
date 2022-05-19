@@ -19,7 +19,7 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
     uint16 constant gen_zeros_max_supply = 10000; // 8 bytes, max value 65535
 
     uint8 constant salesCommision = 2;
-    uint8 constant breedingCommision = 2;
+    uint8 constant breedingCommision = 20;
 
     uint8 constant MIN_STRENGTH = 1;
     uint8 constant MAX_STRENGTH = 10;
@@ -31,6 +31,8 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
     // uint256 constant MAX_SAPLING_GROWN_TIME = 604800000;    // 30 days in ms
 
     // Debugging values
+    uint256 constant MIN_BREEDING_PRICE = 20;
+
     uint256 constant MIN_GROWTH_SPEED = 0;
     uint256 constant MAX_GROWTH_SPEED = 604800000000000; // a lot
 
@@ -64,14 +66,16 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
         string trunk_color; // 1 byte per char
         string leaf_primary_color; // 1 byte per char
         string leaf_secondary_color; // 1 byte per char
+        uint256 gen; // 32 bytes
+        uint256 growthSpeed; // 32 bytes  // min value, 6 hours - max value - 7 days
+        uint256 sapling_growth_time; // 32 bytes
         uint256 tokenId; // 32 bytes
         uint256 birthday_timestamp; // 32 bytes
         uint256 last_picked_apple_timestamp; // 32 bytes
-        uint256 sapling_growth_time; // 32 bytes
         uint256 sellingPrice; // 32 bytes
         uint256 breedingPrice; // 32 bytes
-        uint256 gen; // 32 bytes
-        uint256 growthSpeed; // 32 bytes  // min value, 6 hours - max value - 7 days
+        uint256 parent_a;
+        uint256 parent_b;
     }
 
     constructor(address _APPLE_address) ERC721("APPLE TREE", "APPLETREE") {
@@ -116,6 +120,10 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
         whenNotPaused
     {
         require(ownerOf(tokenId) == msg.sender);
+
+        if (msg.sender != owner()) {
+            require(breeding_price >= MIN_BREEDING_PRICE);
+        }
 
         if (!trees[tokenId].isListedForBreeding) {
             trees_for_breeding.push(tokenId);
@@ -215,7 +223,9 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
             0,
             0,
             offspring_generation,
-            offspring_growth_speed
+            offspring_growth_speed,
+            mate_tree_token,
+            my_tree_token
         );
 
         cancel_breeding_listing(mate_tree_token);
@@ -387,7 +397,9 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
             listingPrice,
             0,
             0,
-            growthSpeed
+            growthSpeed,
+            uint256(0),
+            uint256(0)
         );
 
         if (listForSale) {

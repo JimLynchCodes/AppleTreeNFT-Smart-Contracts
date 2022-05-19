@@ -9,18 +9,41 @@ library TREE_helpers {
         uint256 growthStrength,
         address APPLE_address
     ) public view returns (uint256) {
-        
-        uint256 age_years = block.timestamp - birthday_timestamp / 60 / 60 / 24 / 365;
+        uint256 age_ms = block.timestamp - birthday_timestamp;
 
         return
             growthStrength *
             (10**APPLE(APPLE_address).decimals()) *
-            (age_years**2 /
-                (age_years**2 + 
-                    (1 +
-                    1 / APPLE(APPLE_address).get_nutrition_score(msg.sender) / 10**APPLE(APPLE_address).decimals())));
+            (age_ms**2 /
+                (age_ms**2 +
+                    APPLE(APPLE_address).get_nutrition_score(msg.sender)));
     }
 
+    function uintToString(uint256 _i)
+        internal
+        pure
+        returns (string memory _uintAsString)
+    {
+        if (_i == 0) {
+            return "0";
+        }
+        uint256 j = _i;
+        uint256 len;
+        while (j != 0) {
+            len++;
+            j /= 10;
+        }
+        bytes memory bstr = new bytes(len);
+        uint256 k = len;
+        while (_i != 0) {
+            k = k - 1;
+            uint8 temp = (48 + uint8(_i - (_i / 10) * 10));
+            bytes1 b1 = bytes1(temp);
+            bstr[k] = b1;
+            _i /= 10;
+        }
+        return string(bstr);
+    }
 
     function getSvg(
         string memory trunk_color,
@@ -57,84 +80,5 @@ library TREE_helpers {
                 )
             );
     }
-
-    function uint2str(uint256 _i)
-        internal
-        pure
-        returns (string memory _uintAsString)
-    {
-        if (_i == 0) {
-            return "0";
-        }
-        uint256 j = _i;
-        uint256 len;
-        while (j != 0) {
-            len++;
-            j /= 10;
-        }
-        bytes memory bstr = new bytes(len);
-        uint256 k = len;
-        while (_i != 0) {
-            k = k - 1;
-            uint8 temp = (48 + uint8(_i - (_i / 10) * 10));
-            bytes1 b1 = bytes1(temp);
-            bstr[k] = b1;
-            _i /= 10;
-        }
-        return string(bstr);
-    }
-
-    /**
-     *  Takes two hex color strings of the form '#FFFFFF' and returns the "average color"
-     */
-    function averageOfColors(string memory colorA, string memory colorB)
-        internal
-        pure
-        returns (string memory)
-    {
-        // TODO
-        return colorB;
-    }
-
-    function uint2hexstr(uint i) public pure returns (string memory) {
-        if (i == 0) return "0";
-        uint j = i;
-        uint length;
-        while (j != 0) {
-            length++;
-            j = j >> 4;
-        }
-        uint mask = 15;
-        bytes memory bstr = new bytes(length);
-        uint k = length;
-        while (i != 0) {
-            uint curr = (i & mask);
-            bstr[--k] = curr > 9 ?
-                bytes1(uint8(55 + curr)) :
-                bytes1(uint8(48 + curr)); // 55 = 65 - 10
-            i = i >> 4;
-        }
-        return string(bstr);
-    }
-
-    function hexColorToBytes(string memory _hex) public pure returns (string[3] memory) {
-        // uint8[] memory result;
-        // for (uint8 i = 0; i < 3; i += 2) {
-        //     result[i / 2] = stringToUint(_hex[i+1] + _hex[i + 3], 16);
-        // }
-        // return result;
-
-        return [substring(_hex,1,3),substring(_hex,3,5),substring(_hex,5,7)];
-    }
-
-    function substring(string memory str, uint startIndex, uint endIndex) public pure returns (string memory) {
-        bytes memory strBytes = bytes(str);
-        bytes memory result = new bytes(endIndex-startIndex);
-        for(uint i = startIndex; i < endIndex; i++) {
-            result[i-startIndex] = strBytes[i];
-        }
-        return string(result);
-    }
-
 
 }

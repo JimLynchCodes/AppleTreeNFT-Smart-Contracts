@@ -21,6 +21,22 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
     uint8 constant salesCommision = 2;
     uint8 constant breedingCommision = 2;
 
+    uint256 constant MIN_STRENGTH = 1;                    
+    uint256 constant MAX_STRENGTH = 10;                   
+
+    // uint256 constant MIN_GROWTH_SPEED = ;           // 6 hours in ms
+    // uint256 constant MAX_GROWTH_SPEED = ;          //  1 week hours in ms
+
+    // uint256 constant MIN_SAPLING_GROWN_TIME = 23076000;     // 2 days in ms
+    // uint256 constant MAX_SAPLING_GROWN_TIME = 604800000;    // 30 days in ms
+
+    // Debugging values
+    uint256 constant MIN_GROWTH_SPEED = 0;          
+    uint256 constant MAX_GROWTH_SPEED = 604800000000000;          // a lot
+
+    uint256 constant MIN_SAPLING_GROWN_TIME = 0;     
+    uint256 constant MAX_SAPLING_GROWN_TIME = 60480000000000000000;    // 1 week hours in ms
+
     uint256 gen_zeros_minted;
 
     uint256 next_tree_for_sale_index;
@@ -215,19 +231,22 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
         uint256 old_token_for_sale_index = trees_for_breeding_index[tokenId];
 
         uint256 last_element_token_id = trees_for_breeding[
-            next_tree_for_breeding_index
+            next_tree_for_breeding_index - 1
         ];
 
         // set last index value overwriting the element to delete
         trees_for_breeding[old_token_for_sale_index] = trees_for_breeding[
-            next_tree_for_breeding_index
+            next_tree_for_breeding_index - 1
         ];
+        
         trees_for_breeding_index[
             last_element_token_id
         ] = old_token_for_sale_index;
 
         // pop off the end
         trees_for_breeding.pop();
+        
+        next_tree_for_breeding_index--;
     }
 
     // In-app buying & selling of TREEs
@@ -285,12 +304,12 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
 
         cancel_for_sale(tree_token_id);
 
-        // transfer TREE NFT to the buyer
-        if (ownerOf(tree_token_id) != address(this)) {
-            approve(ownerOf(tree_token_id), tree_token_id);
+        // if (ownerOf(tree_token_id) != address(this)) {
+            // approve(ownerOf(tree_token_id), tree_token_id);
             // transferFrom(ownerOf(tree_token_id), msg.sender, tree_token_id);
-        }
+        // }
         
+        // transfer TREE NFT to the buyer
         _transfer(ownerOf(tree_token_id), msg.sender, tree_token_id);
     }
 
@@ -303,18 +322,18 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
 
         uint256 old_token_for_sale_index = trees_for_sale_index[tokenId];
 
-        uint256 last_element_token_id = trees_for_sale[
-            next_tree_for_sale_index
-        ];
+        uint256 last_element_token_id = trees_for_sale[next_tree_for_sale_index - 1];
 
         // set last index value overwriting the element to delete
-        trees_for_sale[old_token_for_sale_index] = trees_for_sale[
-            next_tree_for_sale_index
-        ];
+        trees_for_sale[old_token_for_sale_index] = trees_for_sale[next_tree_for_sale_index - 1];
+
+        // update the map keeping track of indexes
         trees_for_sale_index[last_element_token_id] = old_token_for_sale_index;
 
         // pop off the end
         trees_for_sale.pop();
+
+        next_tree_for_sale_index--;
     }
 
     // admin functions
@@ -331,6 +350,10 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
             gen_zeros_minted < gen_zeros_max_supply,
             "The max number of gen zero TREEs have been minted!"
         );
+
+        require(growthSpeed >= MIN_GROWTH_SPEED && growthSpeed <= MAX_GROWTH_SPEED, "bad growthSpeed");
+        require(growthStrength >= MIN_STRENGTH && growthStrength <= MAX_STRENGTH, "bad growthStrength");
+        require(sapling_growth_time >= MIN_SAPLING_GROWN_TIME && sapling_growth_time <= MIN_SAPLING_GROWN_TIME, "bad sapling time");
 
         _safeMint(address(this), next_tree_token_id);
 

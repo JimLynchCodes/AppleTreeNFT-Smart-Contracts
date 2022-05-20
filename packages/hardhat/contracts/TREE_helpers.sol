@@ -2,21 +2,42 @@
 pragma solidity >=0.8.13 <0.9.0;
 
 import "./APPLE.sol";
+import "hardhat/console.sol";
+
+import "abdk-libraries-solidity/ABDKMath64x64.sol";
 
 library TREE_helpers {
+     
     function apples_to_mint_calculation(
         uint256 birthday_timestamp,
         uint256 growthStrength,
         address APPLE_address
     ) public view returns (uint256) {
+        
         uint256 age_ms = block.timestamp - birthday_timestamp;
+        int128 age_years = ABDKMath64x64.divu(age_ms, 31556926000);
 
-        return
-            growthStrength *
-            (10**APPLE(APPLE_address).decimals()) *
-            (age_ms**2 /
-                (age_ms**2 +
-                    APPLE(APPLE_address).get_nutrition_score(msg.sender)));
+        return ABDKMath64x64.toUInt(
+
+            ABDKMath64x64.mul(
+                ABDKMath64x64.mul(
+                    ABDKMath64x64.fromUInt(growthStrength),
+                    (ABDKMath64x64.fromUInt(10**APPLE(APPLE_address).decimals()))),
+                
+                ABDKMath64x64.div(ABDKMath64x64.pow(age_years, 2),
+                    ABDKMath64x64.add(ABDKMath64x64.pow(age_years, 2),
+                    ABDKMath64x64.div(50, ABDKMath64x64.fromUInt(
+                        fib_level_loop(APPLE(APPLE_address).get_nutrition_score(msg.sender)))
+                        )
+                    )
+                )
+        ));
+            
+        //     return growthStrength *
+        //     (10**APPLE(APPLE_address).decimals()) *
+        //     ((age_years)**2 /
+        //         ((age_years)**2 + 
+        //             + 50 / fib_level_loop(APPLE(APPLE_address).get_nutrition_score(msg.sender))));
     }
 
     function uintToString(uint256 _i)
@@ -79,6 +100,49 @@ library TREE_helpers {
                     "</svg>"
                 )
             );
+    }
+
+    // function fibonacci(uint number) public pure returns(uint result) {
+
+    //     uint steps;
+
+    //     if (number == 0) return 0;
+    //     else if (number == 1) return 1;
+    //     else  {
+    //         steps++;
+    //         return fibonacci(number - 1) + fibonacci(number - 2);
+    //     }
+    // }
+
+    // function fib_level_recursive(uint target, uint current_count, uint previous_count, uint level) public view returns(uint _target, uint _current_count, uint _previous_count, uint _level) {
+
+    //     if (target == 0) return (target, 0, 0, 0);
+    //     else if (target == 1) return (target, 0, 0, 1);
+
+    //     if (current_count == 0) current_count = 1;
+
+    //     level++;
+
+    //     if (current_count + previous_count >= target)
+    //         return (target, current_count + previous_count, current_count, level);
+    //     else 
+    //         return fib_level_recursive(target, current_count + previous_count, current_count, level);
+
+    // }
+
+    function fib_level_loop(uint target) public pure returns (uint fib_level) {
+
+        fib_level = 1;
+        uint count = 1;
+        uint previous_count = 1;
+
+        while (count < target) {
+            fib_level++;
+            uint place_holder_count = count;
+            count += previous_count;
+            previous_count = place_holder_count;
+        }
+
     }
 
 }

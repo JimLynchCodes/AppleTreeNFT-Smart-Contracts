@@ -92,7 +92,7 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
             block.timestamp >
                 (trees[tree_token_id].birthday_timestamp +
                     trees[tree_token_id].sapling_growth_time)
-            // ,"This TREE is still a wee sapling!"
+            ,"TREE is a wee sapling!"
         );
 
         require(
@@ -216,14 +216,14 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
             offspring_trunk_color,
             offspring_leaf_primary_color,
             offspring_leaf_secondary_color,
+            offspring_generation,
+            offspring_growth_speed,
+            offspring_sapling_growth_time,
             next_tree_token_id,
             block.timestamp,
             block.timestamp,
-            offspring_sapling_growth_time,
             0,
             0,
-            offspring_generation,
-            offspring_growth_speed,
             mate_tree_token,
             my_tree_token
         );
@@ -283,8 +283,9 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
         // address current_owner = ownerOf(tree_token_id);
 
         require(
-            msg.sender != ownerOf(tree_token_id),
-            "Can't buy your own TREE!"
+            msg.sender != ownerOf(tree_token_id)
+            // ,
+            // "Can't buy your own TREE!"
         );
         require(
             trees[tree_token_id].isForSale
@@ -390,14 +391,14 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
             trunk_color,
             leaf_primary_color,
             leaf_secondary_color,
+            0,
+            growthSpeed,
+            sapling_growth_time,
             next_tree_token_id,
             block.timestamp,
             block.timestamp,
-            sapling_growth_time,
             listingPrice,
             0,
-            0,
-            growthSpeed,
             uint256(0),
             uint256(0)
         );

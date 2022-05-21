@@ -39,6 +39,10 @@ library TREE_helpers {
 
     }
 
+    function min_breeding_price(supply_of_apples, supply_of_trees) returns (uint256) {
+        return 0;
+    }
+
     function uintToString(uint256 _i)
         internal
         pure

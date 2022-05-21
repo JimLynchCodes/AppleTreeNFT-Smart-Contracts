@@ -4,6 +4,7 @@ pragma solidity >=0.8.13 <0.9.0;
 import "./APPLE.sol";
 import "./Base64.sol";
 import "./TREE_helpers.sol";
+import "./Other_helpers.sol";
 import "./ColorAverager.sol";
 
 import "hardhat/console.sol";
@@ -41,7 +42,7 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
     
     uint256 constant BREEDING_COOLDOWN = 604800; // 1 week in s
 
-    uint256 gen_zeros_minted;
+    uint256 public gen_zeros_minted;
 
     uint256 next_tree_for_sale_index;
     uint256 next_tree_for_breeding_index;
@@ -80,6 +81,8 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
         uint256 parent_a;
         uint256 parent_b;
     }
+
+    // mapping(uint256 => uint256) last_breeding_time;
 
     constructor(address _APPLE_address) ERC721("APPLE TREE", "APPLETREE") {
         APPLE_address = _APPLE_address;
@@ -127,7 +130,7 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
         require(block.timestamp >= trees[tokenId].last_breeding_time + BREEDING_COOLDOWN);
 
         if (msg.sender != owner()) { // remove owner backdoor
-            require(breeding_price >= TREE_helpers.min_breeding_price());
+            require(breeding_price >= Other_helpers.min_breeding_price(1, 1));
         }
 
         if (!trees[tokenId].isListedForBreeding) {
@@ -448,17 +451,16 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
                             trees[tokenId].leaf_secondary_color
                         ),
                         '",',
-                        '"description": "A nice little description...",',
                         '"attributes": [',
                         '{"trait_type": "Growth Strength", "value": ',
                         TREE_helpers.uintToString(
                             trees[tokenId].growthStrength
                         ),
                         "},",
-                        '{"trait_type": "Growth Speed", "value": ',
+                        '{"trait_type": "Growth Speed (s)", "value": ',
                         TREE_helpers.uintToString(trees[tokenId].growthSpeed),
                         "},",
-                        '{"trait_type": "Sapling Growth Time", "value": ',
+                        '{"trait_type": "Sapling Growth Time (s)", "value": ',
                         TREE_helpers.uintToString(
                             trees[tokenId].sapling_growth_time
                         ),
@@ -468,16 +470,14 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
                             trees[tokenId].birthday_timestamp
                         ),
                         "},",
-                        '{"display_type": "date", "trait_type": "Last Picked APPLE", "value": ',
-                        TREE_helpers.uintToString(
-                            trees[tokenId].last_picked_apple_timestamp
-                        ),
-                        "},",
-                        '{"display_type": "date", "trait_type": "Last Breeding", "value": ',
-                        TREE_helpers.uintToString(
-                            trees[tokenId].last_breeding_time
-                        ),
-                        "},",
+                        // '{"display_type": "date", "trait_type": "Last Picked APPLE", "value": ',
+                        // TREE_helpers.uintToString(
+                        //     trees[tokenId].last_picked_apple_timestamp
+                        // ),
+                        // "},",
+                        // '{"display_type": "date", "trait_type": "Last Breeding", "value": ',
+                        // TREE_helpers.uintToString(last_breeding_time[tokenId]),
+                        // "},",
                         '{"display_type": "number", "trait_type": "Generation", "value": "',
                         TREE_helpers.uintToString(trees[tokenId].gen),
                         '"},',

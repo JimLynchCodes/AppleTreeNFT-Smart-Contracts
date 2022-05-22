@@ -271,8 +271,6 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
         next_tree_for_breeding_index--;
     }
 
-    // In-app buying & selling of TREEs
-
     function list_for_sale(uint256 tokenId, uint256 sell_price)
         external
         whenNotPaused
@@ -327,11 +325,6 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
 
         cancel_for_sale(tree_token_id);
 
-        // if (ownerOf(tree_token_id) != address(this)) {
-        // approve(ownerOf(tree_token_id), tree_token_id);
-        // transferFrom(ownerOf(tree_token_id), msg.sender, tree_token_id);
-        // }
-
         // transfer TREE NFT to the buyer
         _transfer(ownerOf(tree_token_id), msg.sender, tree_token_id);
     }
@@ -376,8 +369,8 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
         address beneficiary
     ) external onlyOwner {
         require(
-            gen_zeros_minted < gen_zeros_max_supply,
-            "The max number of gen zero TREEs have been minted!"
+            gen_zeros_minted < gen_zeros_max_supply
+            // "The max number of gen zero TREEs have been minted!"
         );
 
         require(
@@ -509,4 +502,23 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
     {
         return trees_for_breeding;
     }
+
+    /// @notice Handle the receipt of an NFT
+    /// @dev The ERC721 smart contract calls this function on the recipient
+    ///  after a `safetransfer`. This function MAY throw to revert and reject the
+    ///  transfer. This function MUST use 50,000 gas or less. Return of other
+    ///  than the magic value MUST result in the transaction being reverted.
+    ///  Note: the contract address is always the message sender.
+    /// @param _from The sending address
+    /// @param _tokenId The NFT identifier which is being transfered
+    /// @param _data Additional data with no specified format
+    /// @return 
+    // `bytes4(keccak256("onERC721Received(address,uint256,bytes)"))`
+    function onERC721Received(address _from, uint256 _tokenId, bytes memory _data) public returns(bytes4) {
+        if (trees[_tokenId].isListedForBreeding) cancel_breeding_listing(_tokenId);
+        if (trees[_tokenId].isForSale) cancel_for_sale(_tokenId);
+
+        return bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"));
+    }
+
 }

@@ -91,7 +91,7 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
     function pick_APPLEs(uint256 tree_token_id) external whenNotPaused {
         require(
             msg.sender == ownerOf(tree_token_id)
-            // ,"You are not the TREE owner!"
+            ,"You are not the TREE owner!"
         );
 
         require(
@@ -105,7 +105,7 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
             block.timestamp >
                 (trees[tree_token_id].last_picked_apple_timestamp +
                     trees[tree_token_id].growthSpeed)
-            // ,"The APPLE on this TREE is not done growing yet!"
+            ,"The APPLE on this TREE is not done growing yet!"
         );
 
         trees[tree_token_id].last_picked_apple_timestamp = block.timestamp;
@@ -149,22 +149,22 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
     ) external whenNotPaused {
         require(
             trees[mate_tree_token].isListedForBreeding
-            // ,
-            // "That TREE is not listed for breeding!"
+            ,
+            "That TREE is not listed for breeding!"
         );
 
         require(block.timestamp >= trees[my_tree_token].last_breeding_time + BREEDING_COOLDOWN);
 
         require(
             ownerOf(my_tree_token) == msg.sender
-            // ,
-            // "You are not the TREE owner!"
+            ,
+            "You are not the TREE owner!"
         );
 
         require(
             balanceOf(msg.sender) >= trees[mate_tree_token].breedingPrice
-            // ,
-            // "You don't have enough APPLEs to pay the breeding cost!"
+            ,
+            "You don't have enough APPLEs to pay the breeding cost!"
         );
 
         // transfer APPLE payment
@@ -294,12 +294,12 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
 
         require(
             msg.sender != ownerOf(tree_token_id)
-            // ,
-            // "Can't buy your own TREE!"
+            ,
+            "Can't buy your own TREE!"
         );
         require(
             trees[tree_token_id].isForSale
-            //,  "Can't buy a TREE that isn't for sale!"
+            ,  "Can't buy a TREE that isn't for sale!"
         );
         require(
             APPLE(APPLE_address).balanceOf(msg.sender) >=
@@ -369,22 +369,22 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
         address beneficiary
     ) external onlyOwner {
         require(
-            gen_zeros_minted < gen_zeros_max_supply
-            // "The max number of gen zero TREEs have been minted!"
+            gen_zeros_minted < gen_zeros_max_supply,
+            "The max number of gen zero TREEs have been minted!"
         );
 
         require(
             growthSpeed >= MIN_GROWTH_SPEED && growthSpeed <= MAX_GROWTH_SPEED
-            // , "bad growthSpeed"
+            , "bad growthSpeed"
         );
         require(
             growthStrength >= MIN_STRENGTH && growthStrength <= MAX_STRENGTH
-            // , "bad growthStrength"
+            , "bad growthStrength"
         );
         require(
             sapling_growth_time >= MIN_SAPLING_GROWN_TIME &&
                 sapling_growth_time <= MAX_SAPLING_GROWN_TIME
-            // , "bad sapling time"
+            , "bad sapling time"
         );
 
         _safeMint(beneficiary, next_tree_token_id);
@@ -520,5 +520,9 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
 
         return bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"));
     }
+
+    // function withdraw_apple(uint8 amount) public onlyOwner {
+    //     APPLE(APPLE_address).transfer(owner(), amount);
+    // }
 
 }

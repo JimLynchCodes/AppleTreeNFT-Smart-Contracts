@@ -13,6 +13,8 @@ require("hardhat-abi-exporter");
 require("@nomiclabs/hardhat-ethers");
 require("@nomiclabs/hardhat-etherscan");
 
+require("hardhat-contract-sizer");
+
 const { isAddress, getAddress, formatUnits, parseUnits } = utils;
 
 /*
@@ -262,11 +264,14 @@ module.exports = {
   solidity: {
     compilers: [
       {
-        version: "0.8.4",
+        version: "0.8.13",
         settings: {
           optimizer: {
             enabled: true,
             runs: 200,
+            details: {
+              yul: false
+            }
           },
         },
       },

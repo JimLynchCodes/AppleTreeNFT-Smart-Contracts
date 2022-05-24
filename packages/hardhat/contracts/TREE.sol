@@ -125,13 +125,15 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
         external
         whenNotPaused
     {
-        require(ownerOf(tokenId) == msg.sender);
+        require(ownerOf(tokenId) == msg.sender,
+        'only the owner can call this function');
 
-        require(block.timestamp >= trees[tokenId].last_breeding_time + BREEDING_COOLDOWN);
+        require(block.timestamp >= trees[tokenId].last_breeding_time + BREEDING_COOLDOWN,
+        'breeding cooldown has not finshed yet');
 
-        if (msg.sender != owner()) { // remove owner backdoor
-            require(breeding_price >= Other_helpers.min_breeding_price(1, 1));
-        }
+        // if (msg.sender != owner()) { // remove owner backdoor
+            require(breeding_price >= Other_helpers.min_breeding_price(1, 1), 'Price is greater than max breeding price');
+        // }
 
         if (!trees[tokenId].isListedForBreeding) {
             trees_for_breeding.push(tokenId);
@@ -153,7 +155,8 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
             "That TREE is not listed for breeding!"
         );
 
-        require(block.timestamp >= trees[my_tree_token].last_breeding_time + BREEDING_COOLDOWN);
+        require(block.timestamp >= trees[my_tree_token].last_breeding_time + BREEDING_COOLDOWN,
+        'Breeding cooldown has not expire yet');
 
         require(
             ownerOf(my_tree_token) == msg.sender
@@ -275,7 +278,7 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
         external
         whenNotPaused
     {
-        require(ownerOf(tokenId) == msg.sender);
+        require(ownerOf(tokenId) == msg.sender, 'only owner can call this function');
 
         if (!trees[tokenId].isForSale) {
             trees_for_sale.push(tokenId);
@@ -331,7 +334,6 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
 
     function cancel_for_sale(uint256 tokenId) public whenNotPaused {
         // gives approval rights back to the current owner.
-
         trees[tokenId].isForSale = false;
 
         // swap n' pop removal from for sale array

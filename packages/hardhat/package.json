@@ -4,12 +4,13 @@
   "main": "index.js",
   "license": "MIT",
   "devDependencies": {
-    "@nomiclabs/hardhat-ethers": "npm:hardhat-deploy-ethers@^0.3.0-beta.13",
+    "@nomiclabs/hardhat-ethers": "^2.0.6",
     "eslint": "^7.5.0",
     "eslint-config-airbnb": "^18.2.0",
     "eslint-config-prettier": "^6.11.0",
     "eslint-plugin-babel": "^5.3.1",
     "eslint-plugin-prettier": "^3.4.0",
+    "hardhat": "^2.6.0",
     "hardhat-contract-sizer": "^2.5.1"
   },
   "dependencies": {
@@ -23,7 +24,6 @@
     "dotenv": "^8.2.0",
     "ethereum-waffle": "^3.1.1",
     "ethers": "^5.4.4",
-    "hardhat": "2.6.0",
     "hardhat-abi-exporter": "^2.8.0",
     "hardhat-deploy": "^0.9.0",
     "hardhat-gas-reporter": "^1.0.4",
@@ -45,6 +45,8 @@
     "generate": "hardhat generate",
     "account": "hardhat account",
     "verify": "hardhat verify",
-    "size": "yarn hardhat size-contracts"
+    "size": "yarn hardhat size-contracts",
+    "truff:dash": "truffle dashboard --port 25012 --host localhost",
+    "truff:d": "hardhat deploy --network truffle-dashboard"
   }
 }

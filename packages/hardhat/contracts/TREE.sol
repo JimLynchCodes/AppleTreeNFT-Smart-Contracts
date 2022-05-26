@@ -33,7 +33,8 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
     uint256 public constant MIN_GROWTH_SPEED = 72000; // 20 hours in seconds
     uint256 public constant MAX_GROWTH_SPEED = 1814400; // 3 weeks in seconds
 
-    uint256 public constant MIN_SAPLING_GROWN_TIME = 0; // 3 days in seconds
+    // TODO - choose a good time for this...
+    uint256 public constant MIN_SAPLING_GROWN_TIME = 0;
     uint256 public constant MAX_SAPLING_GROWN_TIME = 60480000000000000; // 1 month in seconds
 
     uint256 public constant BREEDING_COOLDOWN = 604800; // 1 week in s

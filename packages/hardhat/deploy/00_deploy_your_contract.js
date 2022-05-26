@@ -68,7 +68,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   console.log('BreedingHelpers addr ', BreedingHelpers.address)
   
   
-  await deploy("TREE_helpers", {
+  await deploy("TreeHelpers", {
     // Learn more about args here: https://www.npmjs.com/package/hardhat-deploy#deploymentsdeploy
     from: deployer,
     // args: [ "Hello", ethers.utils.parseEther("1.5") ],
@@ -77,8 +77,8 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   });
 
   // Getting a previously deployed contract
-  const TREE_helpers = await ethers.getContract("TREE_helpers", deployer);
-  console.log('TREE_helpers addr ', TREE_helpers.address)
+  const TreeHelpers = await ethers.getContract("TreeHelpers", deployer);
+  console.log('TreeHelpers addr ', TreeHelpers.address)
   
   await deploy("TREE", {
     // Learn more about args here: https://www.npmjs.com/package/hardhat-deploy#deploymentsdeploy
@@ -90,7 +90,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
       ColorAverager: ColorAverager.address,
       Base64: Base64.address,
       BreedingHelpers: BreedingHelpers.address,
-      TREE_helpers: TREE_helpers.address
+      TreeHelpers: TreeHelpers.address
     }
   });
   

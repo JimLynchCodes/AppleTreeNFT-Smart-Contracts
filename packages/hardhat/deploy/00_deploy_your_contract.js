@@ -17,7 +17,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   const { deployer } = await getNamedAccounts();
   const chainId = await getChainId();
 
-  await deploy("YourContract", {
+  await deploy("APPLE", {
     // Learn more about args here: https://www.npmjs.com/package/hardhat-deploy#deploymentsdeploy
     from: deployer,
     // args: [ "Hello", ethers.utils.parseEther("1.5") ],
@@ -26,7 +26,102 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   });
 
   // Getting a previously deployed contract
-  const YourContract = await ethers.getContract("YourContract", deployer);
+  const APPLE = await ethers.getContract("APPLE", deployer);
+  console.log('APPLE addr ', APPLE.address)
+  
+  await deploy("ColorAverager", {
+    // Learn more about args here: https://www.npmjs.com/package/hardhat-deploy#deploymentsdeploy
+    from: deployer,
+    // args: [ "Hello", ethers.utils.parseEther("1.5") ],
+    log: true,
+    waitConfirmations: 5,
+  });
+
+  // Getting a previously deployed contract
+  const ColorAverager = await ethers.getContract("ColorAverager", deployer);
+  console.log('ColorAverager addr ', ColorAverager.address)
+  
+  
+  await deploy("Base64", {
+    // Learn more about args here: https://www.npmjs.com/package/hardhat-deploy#deploymentsdeploy
+    from: deployer,
+    // args: [ "Hello", ethers.utils.parseEther("1.5") ],
+    log: true,
+    waitConfirmations: 5,
+  });
+
+  // Getting a previously deployed contract
+  const Base64 = await ethers.getContract("Base64", deployer);
+  console.log('Base64 addr ', Base64.address)
+  
+  
+  await deploy("Other_helpers", {
+    // Learn more about args here: https://www.npmjs.com/package/hardhat-deploy#deploymentsdeploy
+    from: deployer,
+    // args: [ "Hello", ethers.utils.parseEther("1.5") ],
+    log: true,
+    waitConfirmations: 5,
+  });
+
+  // Getting a previously deployed contract
+  const Other_helpers = await ethers.getContract("Other_helpers", deployer);
+  console.log('Other_helpers addr ', Other_helpers.address)
+  
+  
+  await deploy("TREE_helpers", {
+    // Learn more about args here: https://www.npmjs.com/package/hardhat-deploy#deploymentsdeploy
+    from: deployer,
+    // args: [ "Hello", ethers.utils.parseEther("1.5") ],
+    log: true,
+    waitConfirmations: 5,
+  });
+
+  // Getting a previously deployed contract
+  const TREE_helpers = await ethers.getContract("TREE_helpers", deployer);
+  console.log('TREE_helpers addr ', TREE_helpers.address)
+  
+  await deploy("TREE", {
+    // Learn more about args here: https://www.npmjs.com/package/hardhat-deploy#deploymentsdeploy
+    from: deployer,
+    args: [APPLE.address],
+    log: true,
+    waitConfirmations: 5,
+    libraries: {
+      ColorAverager: ColorAverager.address,
+      Base64: Base64.address,
+      Other_helpers: Other_helpers.address,
+      TREE_helpers: TREE_helpers.address
+    }
+  });
+  
+  const TREE = await ethers.getContract("TREE", deployer);
+  console.log('TREE addr ', TREE.address)
+
+
+  // await deploy("TREE", {
+  //   // Learn more about args here: https://www.npmjs.com/package/hardhat-deploy#deploymentsdeploy
+  //   from: deployer,
+  //   args: [ ],
+  //   log: true,
+  //   waitConfirmations: 5,
+  // });
+  
+  // const TREE = await ethers.getContract("TREE", deployer);
+  // console.log('TREE addr ', TREE.address)
+
+  // await deploy("APPLE", {
+  //   // Learn more about args here: https://www.npmjs.com/package/hardhat-deploy#deploymentsdeploy
+  //   from: deployer,
+  //   // args: [ "Hello", ethers.utils.parseEther("1.5") ],
+  //   log: true,
+  //   waitConfirmations: 5,
+  // });
+
+  // // Getting a previously deployed contract
+  // const APPLE = await ethers.getContract("APPLE", deployer);
+
+
+
   /*  await YourContract.setPurpose("Hello");
   
     To take ownership of yourContract using the ownable library uncomment next line and add the 
@@ -76,4 +171,4 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   //   console.error(error);
   // }
 };
-module.exports.tags = ["YourContract"];
+module.exports.tags = ["APPLE", "TREE"];

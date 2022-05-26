@@ -15,6 +15,8 @@ require("@nomiclabs/hardhat-etherscan");
 
 require("hardhat-contract-sizer");
 
+// console.log('nem: ', process.env.nem1)
+
 const { isAddress, getAddress, formatUnits, parseUnits } = utils;
 
 /*
@@ -34,16 +36,17 @@ const defaultNetwork = "localhost";
 const mainnetGwei = 21;
 
 function mnemonic() {
-  try {
-    return fs.readFileSync("./mnemonic.txt").toString().trim();
-  } catch (e) {
-    if (defaultNetwork !== "localhost") {
-      console.log(
-        "☢️ WARNING: No mnemonic file created for a deploy account. Try `yarn run generate` and then `yarn run account`."
-      );
-    }
-  }
-  return "";
+  // try {
+  //   return fs.readFileSync("./mnemonic.txt").toString().trim();
+  // } catch (e) {
+  //   if (defaultNetwork !== "localhost") {
+  //     console.log(
+  //       "☢️ WARNING: No mnemonic file created for a deploy account. Try `yarn run generate` and then `yarn run account`."
+  //     );
+  //   }
+  // }
+  // return "";
+  return process.env.nem1;
 }
 
 module.exports = {
@@ -76,7 +79,7 @@ module.exports = {
       */
     },
     "truffle-dashboard": {
-      url: "http://localhost:24012/rpc"
+      url: "http://localhost:25012/rpc"
     },
     rinkeby: {
       url: "https://rinkeby.infura.io/v3/460f40a260564ac4a4f4b3fffb032dad", // <---- YOUR INFURA ID! (or it won't work)
@@ -144,12 +147,14 @@ module.exports = {
       },
     },
     mumbai: {
-      url: "https://rpc-mumbai.maticvigil.com",
-      // url: "https://speedy-nodes-nyc.moralis.io/XXXXXXXXXXXXXXXXXXXXXXX/polygon/mumbai", // <---- YOUR MORALIS ID! (not limited to infura)
+      // url: "https://rpc-mumbai.maticvigil.com",
+      url: "https://speedy-nodes-nyc.moralis.io/bf3db4b2b42af25349cb4d93/polygon/mumbai", // <---- YOUR MORALIS ID! (not limited to infura)
       gasPrice: 3200000000,
-      accounts: {
-        mnemonic: mnemonic(),
-      },
+      
+      accounts: [process.env.nem1]
+      // accounts: {
+      //   mnemonic: mnemonic(),
+      // },
     },
     matic: {
       url: "https://rpc-mainnet.maticvigil.com/",

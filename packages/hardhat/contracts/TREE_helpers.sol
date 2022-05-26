@@ -8,8 +8,9 @@ import "abdk-libraries-solidity/ABDKMath64x64.sol";
 
 library TREE_helpers {
      
-    uint256 constant balancer_constant = 5;
-    uint256 constant multiplier_constant = 10;
+    uint256 constant floor = 1;
+    uint256 constant balancer_constant = 20;
+    uint256 constant multiplier_constant = 9;
 
     function apples_to_mint_calculation (
         uint256 birthday_timestamp,
@@ -23,6 +24,7 @@ library TREE_helpers {
 
         return multiplier_constant * 
             growthStrength * 
+            (floor +
             ABDKMath64x64.toUInt(
             ABDKMath64x64.mul(
                 ABDKMath64x64.fromUInt(10**APPLE(APPLE_address).decimals()),
@@ -35,7 +37,7 @@ library TREE_helpers {
                     )
                 )
             )
-        );
+        ));
 
     }
 

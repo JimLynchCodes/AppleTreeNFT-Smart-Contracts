@@ -8,6 +8,8 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 contract APPLE is ERC20, Ownable, Pausable {
 
+  uint public burned;
+
   address public TREE_address;
 
   mapping(address => uint256) nutrition_score;
@@ -32,6 +34,7 @@ contract APPLE is ERC20, Ownable, Pausable {
 
   function eat(uint256 amount) external whenNotPaused {
     _burn(msg.sender, amount);
+    burned += amount;
     nutrition_score[msg.sender] += amount;
   }
 

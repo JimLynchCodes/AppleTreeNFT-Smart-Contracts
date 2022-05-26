@@ -14,6 +14,7 @@
     "hardhat-contract-sizer": "^2.5.1"
   },
   "dependencies": {
+    "@nomiclabs/hardhat-ethers": "npm:hardhat-deploy-ethers",
     "@nomiclabs/hardhat-etherscan": "^3.0.1",
     "@nomiclabs/hardhat-waffle": "^2.0.0",
     "@openzeppelin/contracts": "^4.6.0",
@@ -47,6 +48,6 @@
     "verify": "hardhat verify",
     "size": "yarn hardhat size-contracts",
     "truff:dash": "truffle dashboard --port 25012 --host localhost",
-    "truff:d": "hardhat deploy --network truffle-dashboard"
+    "truff:d": "hardhat deploy --network mumbai"
   }
 }

@@ -7,55 +7,42 @@ import "hardhat/console.sol";
 import "abdk-libraries-solidity/ABDKMath64x64.sol";
 
 library TreeHelpers {
-     
     uint256 constant balancer_constant = 5;
     uint256 constant multiplier_constant = 10;
-    uint256 constant floor = 1;
 
-    function apples_to_mint_calculation (
+    function apples_to_mint_calculation(
         uint256 birthday_timestamp,
         uint256 growthStrength,
-        address APPLE_address
+        uint256 appleDecimals,
+        uint256 userNutritionScore
     ) public view returns (uint256) {
-        
         uint256 age_ms = block.timestamp - birthday_timestamp;
+
+        uint256 floor = 10**appleDecimals;
+
         int128 age_years = ABDKMath64x64.divu(age_ms, 31536000);
         int128 age_years_squared = ABDKMath64x64.pow(age_years, 2);
- 
-        return multiplier_constant * 
-            growthStrength * 
-            (10**APPLE(APPLE_address).decimals() +
-            (ABDKMath64x64.toUInt(
-            ABDKMath64x64.mul(
-                ABDKMath64x64.fromUInt(10**APPLE(APPLE_address).decimals()),
-                ABDKMath64x64.div(age_years_squared,
-                    ABDKMath64x64.add(age_years_squared,
-                        ABDKMath64x64.divu(
-                            balancer_constant, 
-                            fib_level_loop(APPLE(APPLE_address).get_nutrition_score(msg.sender))
+
+        uint256 fib = fib_level_loop(userNutritionScore, appleDecimals);
+
+        return
+            floor +
+            multiplier_constant *
+            growthStrength *
+            (
+                ABDKMath64x64.toUInt(
+                    ABDKMath64x64.mul(
+                        ABDKMath64x64.fromUInt(10**appleDecimals),
+                        ABDKMath64x64.div(
+                            age_years_squared,
+                            ABDKMath64x64.add(
+                                age_years_squared,
+                                ABDKMath64x64.divu(balancer_constant, fib)
+                            )
                         )
                     )
                 )
-            )
-        )
-        ));
-
-        // return multiplier_constant * 
-        //     growthStrength * 
-        //     ABDKMath64x64.toUInt(
-        //     ABDKMath64x64.mul(
-        //         ABDKMath64x64.fromUInt(10**APPLE(APPLE_address).decimals()),
-        //         ABDKMath64x64.div(age_years_squared,
-        //             ABDKMath64x64.add(age_years_squared,
-        //                 ABDKMath64x64.divu(
-        //                     balancer_constant, 
-        //                     fib_level_loop(APPLE(APPLE_address).get_nutrition_score(msg.sender))
-        //                 )
-        //             )
-        //         )
-        //     )
-        // );
-
+            );
     }
 
     function uintToString(uint256 _i)
@@ -120,19 +107,20 @@ library TreeHelpers {
             );
     }
 
-    function fib_level_loop(uint target) public pure returns (uint fib_level) {
-
+    function fib_level_loop(uint256 target, uint256 appleDecimals)
+        public
+        pure
+        returns (uint256 fib_level)
+    {
         fib_level = 1;
-        uint count = 1;
-        uint previous_count = 1;
+        uint256 count = 10**appleDecimals;
+        uint256 previous_count = 10**appleDecimals;
 
         while (count < target) {
             fib_level++;
-            uint place_holder_count = count;
+            uint256 place_holder_count = count;
             count += previous_count;
             previous_count = place_holder_count;
         }
-
     }
-
 }

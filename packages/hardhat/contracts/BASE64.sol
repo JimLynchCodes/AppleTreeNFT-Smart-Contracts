@@ -3,7 +3,7 @@
 pragma solidity >=0.8.13 <0.9.0;
 
 
-import "./TREE_helpers.sol";
+import "./TreeHelpers.sol";
 
 library Base64 {
 

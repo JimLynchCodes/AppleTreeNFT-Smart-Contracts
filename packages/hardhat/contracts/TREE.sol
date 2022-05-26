@@ -3,7 +3,7 @@ pragma solidity >=0.8.13 <0.9.0;
 
 import "./APPLE.sol";
 import "./Base64.sol";
-import "./TREE_helpers.sol";
+import "./TreeHelpers.sol";
 import "./Other_helpers.sol";
 import "./ColorAverager.sol";
 
@@ -108,7 +108,7 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
 
         APPLE(APPLE_address).mint(
             msg.sender,
-            TREE_helpers.apples_to_mint_calculation(
+            TreeHelpers.apples_to_mint_calculation(
                 trees[tree_token_id].birthday_timestamp,
                 trees[tree_token_id].growthStrength,
                 APPLE_address
@@ -735,44 +735,44 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
                                 abi.encodePacked(
                                     '{"name": "',
                                     "TREE #",
-                                    TREE_helpers.uintToString(tokenId),
+                                    TreeHelpers.uintToString(tokenId),
                                     '",',
                                     '"image_data": "',
-                                    TREE_helpers.getSvg(
+                                    TreeHelpers.getSvg(
                                         trees[tokenId].trunk_color,
                                         trees[tokenId].leaf_primary_color,
                                         trees[tokenId].leaf_secondary_color
                                     ),
                                     '","attributes": [',
                                     '{"trait_type": "Growth Strength", "value": ',
-                                    TREE_helpers.uintToString(
+                                    TreeHelpers.uintToString(
                                         trees[tokenId].growthStrength
                                     ),
                                     "},",
                                     '{"trait_type": "Growth Speed (seconds)", "value": ',
-                                    TREE_helpers.uintToString(
+                                    TreeHelpers.uintToString(
                                         trees[tokenId].growthSpeed
                                     ),
                                     "},",
                                     '{"trait_type": "Sapling Growth Time (seconds)", "value": ',
-                                    TREE_helpers.uintToString(
+                                    TreeHelpers.uintToString(
                                         trees[tokenId].sapling_growth_time
                                     ),
                                     '},{"display_type": "date", "trait_type": "Birthday", "value": ',
-                                    TREE_helpers.uintToString(
+                                    TreeHelpers.uintToString(
                                         trees[tokenId].birthday_timestamp
                                     ),
                                     '},{"display_type": "date", "trait_type": "Last Picked APPLE", "value": ',
-                                    TREE_helpers.uintToString(
+                                    TreeHelpers.uintToString(
                                         trees[tokenId]
                                             .last_picked_apple_timestamp
                                     ),
                                     '},{"display_type": "date", "trait_type": "Last Breeding", "value": ',
-                                    TREE_helpers.uintToString(
+                                    TreeHelpers.uintToString(
                                         trees[tokenId].last_breeding_time
                                     ),
                                     '},{"display_type": "number", "trait_type": "Generation", "value": "',
-                                    TREE_helpers.uintToString(
+                                    TreeHelpers.uintToString(
                                         trees[tokenId].gen
                                     ),
                                     '"},{"trait_type": "Trunk", "value": "',

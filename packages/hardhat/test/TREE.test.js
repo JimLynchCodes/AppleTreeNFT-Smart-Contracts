@@ -18,10 +18,10 @@ describe('TREE', function () {
     let APPLE;
 
     beforeEach(async () => {
-      const TREE_Helpers_contract = await ethers.getContractFactory(
-        'TREE_helpers',
+      const TreeHelpers_contract = await ethers.getContractFactory(
+        'TreeHelpers',
       )
-      const TREE_Helpers = await TREE_Helpers_contract.deploy()
+      const TreeHelpers = await TreeHelpers_contract.deploy()
       const Other_Helpers_contract = await ethers.getContractFactory(
         'Other_helpers',
       )
@@ -40,7 +40,7 @@ describe('TREE', function () {
   
       const TREE_contract = await ethers.getContractFactory('TREE', {
         libraries: {
-          TREE_helpers: TREE_Helpers.address,
+          TreeHelpers: TreeHelpers.address,
           Other_helpers: Other_Helpers.address,
           ColorAverager: ColorAverager.address,
         },

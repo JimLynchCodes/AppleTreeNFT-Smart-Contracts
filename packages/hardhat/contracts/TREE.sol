@@ -4,7 +4,7 @@ pragma solidity >=0.8.13 <0.9.0;
 import "./APPLE.sol";
 import "./Base64.sol";
 import "./TreeHelpers.sol";
-import "./Other_helpers.sol";
+import "./BreedingHelpers.sol";
 import "./ColorAverager.sol";
 
 import "hardhat/console.sol";
@@ -79,7 +79,7 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
     }
 
     constructor(address _APPLE_address)
-        ERC721("APPLE TREE v0.2.0", "APPLE_TREE_V_020")
+        ERC721("APPLE TREE v0.3", "APPLE_TREE_V_3")
     {
         APPLE_address = _APPLE_address;
     }
@@ -111,7 +111,8 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
             TreeHelpers.apples_to_mint_calculation(
                 trees[tree_token_id].birthday_timestamp,
                 trees[tree_token_id].growthStrength,
-                APPLE_address
+                APPLE(APPLE_address).decimals(),
+                APPLE(APPLE_address).get_nutrition_score(msg.sender)
             )
         );
     }
@@ -123,25 +124,26 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
     {
         require(
             ownerOf(tokenId) == msg.sender,
-            "only the owner can call this function"
+            "Only the owner can call this function"
         );
 
         require(
             block.timestamp >=
                 trees[tokenId].last_breeding_time + BREEDING_COOLDOWN,
-            "breeding cooldown has not finshed yet"
+            "Breeding cooldown has not finshed yet"
         );
 
         require(
             !trees[tokenId].isListedForBreeding,
-            "this tree is already listed for breeding!"
+            "This tree is already listed for breeding!"
         );
 
         require(
             breeding_price >=
-                Other_helpers.min_breeding_price(
+                BreedingHelpers.min_breeding_price(
                     APPLE(APPLE_address).totalSupply(),
-                    next_tree_token_id
+                    next_tree_token_id,
+                    18
                 ),
             "Price is less than min breeding price"
         );
@@ -156,104 +158,37 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
         trees[tokenId].breedingPrice = breeding_price;
     }
 
-   function select_breeding_mate_calcs_simpler(
+    function select_breeding_mate_calcs_simpler(
         uint256 my_tree_token,
         uint256 mate_tree_token
-    ) external view whenNotPaused 
-    returns (
-        uint256 breeding_price,
-        uint256 _breeding_commision
-    ){
+    )
+        external
+        view
+        whenNotPaused
+        returns (uint256 breeding_price, uint256 _breeding_commision)
+    {
         return (trees[mate_tree_token].breedingPrice, breedingCommision);
     }
 
-   function select_breeding_mate_calcs(
+    function select_breeding_mate_calcs(
         uint256 my_tree_token,
         uint256 mate_tree_token
-    ) external view whenNotPaused 
-    returns (
-        uint256 breeding_price,
-        uint256 transfer_to_mate_owner_amount,
-        uint256 transfer_to_contract_amount
-    ){
-        // require(
-        //     trees[mate_tree_token].isListedForBreeding,
-        //     "That TREE is not listed for breeding!"
-        // );
-
-        // require(
-        //     block.timestamp >=
-        //         trees[my_tree_token].last_breeding_time + BREEDING_COOLDOWN,
-        //     "Breeding cooldown has not expire yet"
-        // );
-
-        // require(
-        //     ownerOf(my_tree_token) == msg.sender,
-        //     "You are not the TREE owner!"
-        // );
-
-        // require(
-        //     APPLE(APPLE_address).balanceOf(msg.sender) >=
-        //         trees[mate_tree_token].breedingPrice,
-        //     "You don't have enough APPLEs to pay the breeding cost!"
-        // );
-
+    )
+        external
+        view
+        whenNotPaused
+        returns (
+            uint256 breeding_price,
+            uint256 transfer_to_mate_owner_amount,
+            uint256 transfer_to_contract_amount
+        )
+    {
         return (
             trees[mate_tree_token].breedingPrice,
-            (trees[mate_tree_token].breedingPrice * (100 - breedingCommision) / 100),
-            (trees[mate_tree_token].breedingPrice * breedingCommision / 100)
-            )    ;
-            // ABDKMath64x64.toUInt(
-            //         ABDKMath64x64.mul(
-            //             ABDKMath64x64.fromUInt(trees[mate_tree_token].breedingPrice),
-            //             ABDKMath64x64.div(
-            //             ABDKMath64x64.sub(ABDKMath64x64.fromUInt(100), 
-            //                 ABDKMath64x64.fromUInt(breedingCommision)),
-            //             ABDKMath64x64.fromUInt(100)
-            //         ))
-            //     ),
-            //     (ABDKMath64x64.toUInt(
-            //         ABDKMath64x64.mul(
-            //             ABDKMath64x64.fromUInt(trees[mate_tree_token].breedingPrice),      
-            //             ABDKMath64x64.div(
-            //                 ABDKMath64x64.fromUInt(breedingCommision),
-            //                 ABDKMath64x64.fromUInt(100)))
-            //             ) - 1)
-        // );
-
-        // // transfer APPLE payment
-        // APPLE(APPLE_address).approve(
-        //     address(this),
-        //     trees[mate_tree_token].breedingPrice
-        // );
-        // APPLE(APPLE_address).transferFrom(
-        //     msg.sender,
-        //     ownerOf(mate_tree_token),
-        //     ABDKMath64x64.toUInt(
-        //             ABDKMath64x64.mul(
-        //                 ABDKMath64x64.fromUInt(trees[mate_tree_token].breedingPrice),
-        //                 ABDKMath64x64.div(
-        //                 ABDKMath64x64.sub(ABDKMath64x64.fromUInt(100), 
-        //                     ABDKMath64x64.fromUInt(breedingCommision)),
-        //                 ABDKMath64x64.fromUInt(100)
-        //             ))
-        //         )
-        // );
-
-        // APPLE(APPLE_address).transferFrom(
-        //     msg.sender,
-        //     address(this),
-        //     ABDKMath64x64.toUInt(
-        //             ABDKMath64x64.mul(
-        //                 ABDKMath64x64.fromUInt(trees[mate_tree_token].breedingPrice),      
-        //                 ABDKMath64x64.div(
-        //                     ABDKMath64x64.fromUInt(breedingCommision),
-        //                     ABDKMath64x64.fromUInt(100)))
-        //                 ) - 1
-
-        //     // (trees[mate_tree_token].breedingPrice * breedingCommision) / 100
-        // );
-
+            ((trees[mate_tree_token].breedingPrice *
+                (100 - breedingCommision)) / 100),
+            ((trees[mate_tree_token].breedingPrice * breedingCommision) / 100)
+        );
     }
 
     function select_breeding_mate(
@@ -277,139 +212,8 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
         );
 
         require(
-            APPLE(APPLE_address).balanceOf(msg.sender) >=
-                trees[mate_tree_token].breedingPrice,
-            "You don't have enough APPLEs to pay the breeding cost!"
-        );
-
-        // transfer APPLE payment
-        APPLE(APPLE_address).approve(
-            address(this),
-            trees[mate_tree_token].breedingPrice
-        );
-
-        APPLE(APPLE_address).transferFrom(
-            ownerOf(my_tree_token),
-            address(this),
-            trees[mate_tree_token].breedingPrice);
-
-        APPLE(APPLE_address).transferFrom(
-            address(this),
-            ownerOf(mate_tree_token),
-            (trees[mate_tree_token].breedingPrice * (100 - breedingCommision) / 100));
-
-        
-
-
-        APPLE(APPLE_address).transferFrom(
-            msg.sender,
-            ownerOf(mate_tree_token),
-            ABDKMath64x64.toUInt(
-                    ABDKMath64x64.mul(
-                        ABDKMath64x64.fromUInt(trees[mate_tree_token].breedingPrice),
-                        ABDKMath64x64.div(
-                        ABDKMath64x64.sub(ABDKMath64x64.fromUInt(100), 
-                            ABDKMath64x64.fromUInt(breedingCommision)),
-                        ABDKMath64x64.fromUInt(100)
-                    ))
-                )
-        );
-
-        // APPLE(APPLE_address).transferFrom(
-        //     msg.sender,
-        //     address(this),
-        //     ABDKMath64x64.toUInt(
-        //             ABDKMath64x64.mul(
-        //                 ABDKMath64x64.fromUInt(trees[mate_tree_token].breedingPrice),      
-        //                 ABDKMath64x64.div(
-        //                     ABDKMath64x64.fromUInt(breedingCommision),
-        //                     ABDKMath64x64.fromUInt(100)))
-        //                 ) - 1
-
-        //     // (trees[mate_tree_token].breedingPrice * breedingCommision) / 100
-        // );
-
-        uint256 offspring_generation = 1 +
-            uint256(
-                trees[mate_tree_token].gen >= trees[my_tree_token].gen
-                    ? trees[mate_tree_token].gen
-                    : trees[my_tree_token].gen
-            );
-
-        uint256 offspring_growth_speed = (trees[mate_tree_token].growthSpeed +
-            trees[my_tree_token].growthSpeed) / 2;
-
-        uint8 offspring_growth_strength = (trees[mate_tree_token]
-            .growthStrength + trees[my_tree_token].growthStrength) / 2;
-
-        uint256 offspring_sapling_growth_time = (trees[mate_tree_token]
-            .sapling_growth_time + trees[my_tree_token].sapling_growth_time) /
-            2;
-
-        string memory offspring_trunk_color = ColorAverager.averageColors(
-            trees[mate_tree_token].trunk_color,
-            trees[my_tree_token].trunk_color
-        );
-
-        string memory offspring_leaf_primary_color = ColorAverager
-            .averageColors(
-                trees[mate_tree_token].leaf_primary_color,
-                trees[my_tree_token].leaf_primary_color
-            );
-
-        string memory offspring_leaf_secondary_color = ColorAverager
-            .averageColors(
-                trees[mate_tree_token].leaf_secondary_color,
-                trees[my_tree_token].leaf_secondary_color
-            );
-
-        _safeMint(msg.sender, next_tree_token_id);
-
-        trees[next_tree_token_id] = TreeData(
-            false,
-            false,
-            offspring_growth_strength,
-            offspring_trunk_color,
-            offspring_leaf_primary_color,
-            offspring_leaf_secondary_color,
-            offspring_generation,
-            offspring_growth_speed,
-            offspring_sapling_growth_time,
-            next_tree_token_id,
-            block.timestamp,
-            (block.timestamp - offspring_growth_speed),
-            (block.timestamp - BREEDING_COOLDOWN),
-            0,
-            0,
-            mate_tree_token,
-            my_tree_token
-        );
-
-        cancel_breeding_listing(mate_tree_token);
-
-        next_tree_token_id++;
-    }
-
-    //TODO - needs to be approved
-
-    function select_breeding_mate2(
-        uint256 my_tree_token,
-        uint256 mate_tree_token
-    ) external whenNotPaused {
-        require(
-            trees[mate_tree_token].isListedForBreeding,
-            "That TREE is not listed for breeding!"
-        );
-
-        require(
-            block.timestamp >=
-                trees[my_tree_token].last_breeding_time + BREEDING_COOLDOWN,
-            "Breeding cooldown has not expire yet"
-        );
-
-        require(
-            ownerOf(my_tree_token) == msg.sender,
-            "You are not the TREE owner!"
+            my_tree_token != mate_tree_token,
+            "Cannot breed a tree with itself!"
         );
 
         require(
@@ -418,58 +222,20 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
             "You don't have enough APPLEs to pay the breeding cost!"
         );
 
-        // transfer APPLE payment
-        // APPLE(APPLE_address).approve(
-        //     address(this),
-        //     trees[mate_tree_token].breedingPrice
-        // );
-
-        // APPLE(APPLE_address).transferFrom(
-        //     msg.sender,
-        //     address(this),
-        //     1);
-
-        // TODO require to be approved for this much
+        // Assumes already approved this contract to take the correct amount of APPLE
 
         APPLE(APPLE_address).transferFrom(
             ownerOf(my_tree_token),
             address(this),
-            trees[mate_tree_token].breedingPrice * breedingCommision);
+            (trees[mate_tree_token].breedingPrice * breedingCommision) / 100
+        );
 
-        APPLE(APPLE_address).transfer(
+        APPLE(APPLE_address).transferFrom(
+            ownerOf(my_tree_token),
             ownerOf(mate_tree_token),
-            (trees[mate_tree_token].breedingPrice * (100 - breedingCommision) / 100));
-
-        
-
-
-        // APPLE(APPLE_address).transferFrom(
-        //     msg.sender,
-        //     ownerOf(mate_tree_token),
-        //     ABDKMath64x64.toUInt(
-        //             ABDKMath64x64.mul(
-        //                 ABDKMath64x64.fromUInt(trees[mate_tree_token].breedingPrice),
-        //                 ABDKMath64x64.div(
-        //                 ABDKMath64x64.sub(ABDKMath64x64.fromUInt(100), 
-        //                     ABDKMath64x64.fromUInt(breedingCommision)),
-        //                 ABDKMath64x64.fromUInt(100)
-        //             ))
-        //         )
-        // );
-
-        // APPLE(APPLE_address).transferFrom(
-        //     msg.sender,
-        //     address(this),
-        //     ABDKMath64x64.toUInt(
-        //             ABDKMath64x64.mul(
-        //                 ABDKMath64x64.fromUInt(trees[mate_tree_token].breedingPrice),      
-        //                 ABDKMath64x64.div(
-        //                     ABDKMath64x64.fromUInt(breedingCommision),
-        //                     ABDKMath64x64.fromUInt(100)))
-        //                 ) - 1
-
-        //     // (trees[mate_tree_token].breedingPrice * breedingCommision) / 100
-        // );
+            ((trees[mate_tree_token].breedingPrice *
+                (100 - breedingCommision)) / 100)
+        );
 
         uint256 offspring_generation = 1 +
             uint256(
@@ -564,10 +330,9 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
     {
         require(
             ownerOf(tokenId) == msg.sender,
-            "only owner can call this function"
+            "Only the Tree owner can list it for sale!"
         );
 
-        // TODO - require not already for sale
         require(
             !trees[tokenId].isForSale,
             "This tree is already listed for sale!"
@@ -602,11 +367,8 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
             "You don't have enough APPLEs to buy this TREE!"
         );
 
-        // transfer APPLE to the seller
-        // APPLE(APPLE_address).approve(
-        //     address(this),
-        //     trees[tree_token_id].sellingPrice
-        // );
+        // Assumed already asked APPLE contract to transfer apples from buyer
+
         APPLE(APPLE_address).transferFrom(
             msg.sender,
             ownerOf(tree_token_id),
@@ -667,18 +429,21 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
             "The max number of gen zero TREEs have been minted!"
         );
 
+        require(growthSpeed <= MAX_GROWTH_SPEED, "growthSpeed too high");
+
+        require(growthSpeed >= MIN_GROWTH_SPEED, "growthSpeed too low");
+
+        require(growthStrength <= MAX_STRENGTH, "growthStrength too high");
+        require(growthStrength >= MIN_STRENGTH, "growthStrength too low");
+
         require(
-            growthSpeed >= MIN_GROWTH_SPEED && growthSpeed <= MAX_GROWTH_SPEED,
-            "bad growthSpeed"
+            sapling_growth_time >= MIN_SAPLING_GROWN_TIME,
+            "sapling time too low"
         );
+
         require(
-            growthStrength >= MIN_STRENGTH && growthStrength <= MAX_STRENGTH,
-            "bad growthStrength"
-        );
-        require(
-            sapling_growth_time >= MIN_SAPLING_GROWN_TIME &&
-                sapling_growth_time <= MAX_SAPLING_GROWN_TIME,
-            "bad sapling time"
+            sapling_growth_time <= MAX_SAPLING_GROWN_TIME,
+            "sapling time too high"
         );
 
         _safeMint(beneficiary, next_tree_token_id);
@@ -734,7 +499,7 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
                             string(
                                 abi.encodePacked(
                                     '{"name": "',
-                                    "TREE #",
+                                    "TREE: #",
                                     TreeHelpers.uintToString(tokenId),
                                     '",',
                                     '"image_data": "',
@@ -789,7 +554,6 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
                     )
                 )
             );
-        // return string(abi.encodePacked("data:application/json;base64,", json));
     }
 
     function getTreesForSale() external view returns (uint256[] memory) {
@@ -830,7 +594,7 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
             );
     }
 
-    // function withdraw_apple(uint8 amount) public onlyOwner {
-    //     APPLE(APPLE_address).transfer(owner(), amount);
-    // }
+    function withdraw_apple(uint8 amount) public onlyOwner {
+        APPLE(APPLE_address).transfer(owner(), amount);
+    }
 }

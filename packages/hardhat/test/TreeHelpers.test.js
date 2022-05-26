@@ -108,7 +108,7 @@ describe('TreeHelpers', async function () {
 
       // zero nutrition, 10 growth score
 
-      [newBornBirthday_s, 10, 18, 0, '1.000000000001', '1.0000000002'],
+      [newBornBirthday_s, 10, 18, 0, '1.0000000000001', '1.000000002'],
       [oneWeekOldBirthday_s, 10, 18, 0, '1', '1.008'],
       [oneMonthOldBirthday_s, 10, 18, 0, '1.1', '1.2'],
       [threeMonthOldBirthday_s, 10, 18, 0, '2', '2.1'],

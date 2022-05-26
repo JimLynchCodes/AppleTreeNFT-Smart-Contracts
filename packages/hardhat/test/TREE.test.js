@@ -22,10 +22,10 @@ describe('TREE', function () {
         'TreeHelpers',
       )
       const TreeHelpers = await TreeHelpers_contract.deploy()
-      const Other_Helpers_contract = await ethers.getContractFactory(
-        'Other_helpers',
+      const BreedingHelpers_contract = await ethers.getContractFactory(
+        'BreedingHelpers',
       )
-      const Other_Helpers = await Other_Helpers_contract.deploy()
+      const BreedingHelpers = await BreedingHelpers_contract.deploy()
   
       const ColorAverager_contract = await ethers.getContractFactory(
         'ColorAverager',
@@ -41,7 +41,7 @@ describe('TREE', function () {
       const TREE_contract = await ethers.getContractFactory('TREE', {
         libraries: {
           TreeHelpers: TreeHelpers.address,
-          Other_helpers: Other_Helpers.address,
+          BreedingHelpers: BreedingHelpers.address,
           ColorAverager: ColorAverager.address,
         },
       })

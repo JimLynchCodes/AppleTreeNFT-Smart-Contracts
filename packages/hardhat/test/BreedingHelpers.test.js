@@ -11,11 +11,6 @@ describe('BreedingHelpers', async function () {
 
   const [owner] = await ethers.getSigners();
 
-  // quick fix to let gas reporter fetch data from gas station & coinmarketcap
-  before((done) => {
-    setTimeout(done, 2000)
-  })
-
   beforeEach(async () => {
 
     const BreedingHelpersContract = await ethers.getContractFactory(

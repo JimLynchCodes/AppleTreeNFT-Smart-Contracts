@@ -4,13 +4,8 @@ const { solidity } = require('ethereum-waffle')
 
 use(solidity)
 
-describe('TREE', function () {
+describe.only('TREE', function () {
   let myContract
-
-  // quick fix to let gas reporter fetch data from gas station & coinmarketcap
-  before((done) => {
-    setTimeout(done, 2000)
-  })
 
   describe('TREE', function () {
 

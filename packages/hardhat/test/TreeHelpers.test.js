@@ -84,7 +84,7 @@ describe('TreeHelpers', async function () {
 
       // zero nutrition, 2 growth score
 
-      [newBornBirthday_s, 2, 18, 0, '1.0000000000003', '1.0000000001'],
+      [newBornBirthday_s, 2, 18, 0, '1.00000000000003', '1.000000001'],
       [oneWeekOldBirthday_s, 2, 18, 0, '1.001', '1.002'],
       [oneMonthOldBirthday_s, 2, 18, 0, '1.02', '1.03'],
       [threeMonthOldBirthday_s, 2, 18, 0, '1.2', '1.3'],
@@ -143,7 +143,7 @@ describe('TreeHelpers', async function () {
       [twentyFiveYearOldBirthday_s, 10, 18, utils.parseEther('20'), '100', '101'],
 
       // high nutrition (100 apples eaten) - growth factor 10
-      [newBornBirthday_s, 10, 18, utils.parseEther('100'), '1.000000000001', '1.00000002'],
+      [newBornBirthday_s, 10, 18, utils.parseEther('100'), '1.0000000000001', '1.0000002'],
       [oneWeekOldBirthday_s, 10, 18, utils.parseEther('100'), '1.08', '1.09'],
       [oneMonthOldBirthday_s, 10, 18, utils.parseEther('100'), '2.2', '2.3'],
       [threeMonthOldBirthday_s, 10, 18, utils.parseEther('100'), '11', '12'],
@@ -154,7 +154,7 @@ describe('TreeHelpers', async function () {
       [twentyFiveYearOldBirthday_s, 10, 18, utils.parseEther('100'), '100', '101'],
 
       // higher nutrition (1000 apples eaten) - growth factor 10
-      [newBornBirthday_s, 10, 18, utils.parseEther('1000'), '1.000000000002', '1.00000003'],
+      [newBornBirthday_s, 10, 18, utils.parseEther('1000'), '1.0000000000002', '1.0000003'],
       [oneWeekOldBirthday_s, 10, 18, utils.parseEther('1000'), '1.1', '1.2'],
       [oneMonthOldBirthday_s, 10, 18, utils.parseEther('1000'), '2.8', '3'],
       [threeMonthOldBirthday_s, 10, 18, utils.parseEther('1000'), '15', '16'],
@@ -165,7 +165,7 @@ describe('TreeHelpers', async function () {
       [twentyFiveYearOldBirthday_s, 10, 18, utils.parseEther('1000'), '100', '101'],
 
       // very high nutrition (100,000 apples eaten) - growth factor 10
-      [newBornBirthday_s, 10, 18, utils.parseEther('1000000'), '1.0000000000025', '1.00000008'],
+      [newBornBirthday_s, 10, 18, utils.parseEther('1000000'), '1.00000000000025', '1.0000008'],
       [oneWeekOldBirthday_s, 10, 18, utils.parseEther('1000000'), '1.2', '1.3'],
       [oneMonthOldBirthday_s, 10, 18, utils.parseEther('1000000'), '4.4', '4.5'],
       [threeMonthOldBirthday_s, 10, 18, utils.parseEther('1000000'), '25', '26'],

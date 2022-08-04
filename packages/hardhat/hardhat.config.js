@@ -36,17 +36,17 @@ const defaultNetwork = "localhost";
 const mainnetGwei = 21;
 
 function mnemonic() {
-  // try {
-  //   return fs.readFileSync("./mnemonic.txt").toString().trim();
-  // } catch (e) {
-  //   if (defaultNetwork !== "localhost") {
-  //     console.log(
-  //       "☢️ WARNING: No mnemonic file created for a deploy account. Try `yarn run generate` and then `yarn run account`."
-  //     );
-  //   }
-  // }
-  // return "";
-  return process.env.nem1;
+  try {
+    return fs.readFileSync("./mnemonic.txt").toString().trim();
+  } catch (e) {
+    if (defaultNetwork !== "localhost") {
+      console.log(
+        "☢️ WARNING: No mnemonic file created for a deploy account. Try `yarn run generate` and then `yarn run account`."
+      );
+    }
+  }
+  return "";
+  // return process.env.nem1;
 }
 
 module.exports = {
@@ -147,11 +147,14 @@ module.exports = {
       },
     },
     mumbai: {
-      // url: "https://rpc-mumbai.maticvigil.com",
-      url: "https://speedy-nodes-nyc.moralis.io/bf3db4b2b42af25349cb4d93/polygon/mumbai", // <---- YOUR MORALIS ID! (not limited to infura)
+      url: "https://rpc-mumbai.maticvigil.com",
+      // url: "https://speedy-nodes-nyc.moralis.io/bf3db4b2b42af25349cb4d93/polygon/mumbai", // <---- YOUR MORALIS ID! (not limited to infura)
       gasPrice: 3200000000,
       
-      accounts: [process.env.nem1]
+      // accounts: [process.env.nem1]
+      accounts: {
+        mnemonic: mnemonic(),
+      },
       // accounts: {
       //   mnemonic: mnemonic(),
       // },

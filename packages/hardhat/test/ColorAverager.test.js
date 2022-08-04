@@ -7,11 +7,6 @@ use(solidity)
 describe('ColorAverager', function () {
   let colorAverager
 
-  // quick fix to let gas reporter fetch data from gas station & coinmarketcap
-  before((done) => {
-    setTimeout(done, 2000)
-  })
-
   describe('averageColors', function () {
     beforeEach(async () => {
       const ColorAverager_contract = await ethers.getContractFactory(

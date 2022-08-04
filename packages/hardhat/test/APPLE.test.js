@@ -4,21 +4,37 @@ const { solidity } = require("ethereum-waffle");
 
 use(solidity);
 
-describe("APPLE", function () {
-  let myContract;
+describe("APPLE", async function () {
+  let apple;
 
-  // quick fix to let gas reporter fetch data from gas station & coinmarketcap
-  before((done) => {
-    setTimeout(done, 2000);
-  });
+  const [owner, user1, user2] = await ethers.getSigners();
 
-  describe("deploy", function () {
+  beforeEach(async () => {
+    const AppleContract = await ethers.getContractFactory('APPLE');
+    apple = await AppleContract.deploy()
+  })
 
-    it('initialiazes everyone owning zero', () => {
+  describe("init", function () {
+
+    it('initialiazes everyone owning zero apples', async () => {
+
+      expect(await apple.balanceOf(owner.address)).to.equal(0);
+      expect(await apple.balanceOf(user1.address)).to.equal(0);
+      expect(await apple.balanceOf(user2.address)).to.equal(0);
 
     })
 
-    it('initializes totalSupply to zero', () => {
+    it('initializes all nutrition scores to zero', async () => {
+
+      expect(await apple.get_nutrition_score(owner.address)).to.equal(0);
+      expect(await apple.get_nutrition_score(user1.address)).to.equal(0);
+      expect(await apple.get_nutrition_score(user2.address)).to.equal(0);
+
+    })
+
+    it('initializes total supply of apples to zero (none minted up front)', async () => {
+
+      expect(await apple.totalSupply()).to.equal(0);
 
     })
 
@@ -26,16 +42,18 @@ describe("APPLE", function () {
 
   describe('minting apple', () => {
 
-    it('can\'t be called by owner or user addresses', () => {
-      
+    it('can\'t be called by owner or user addresses', async () => {
+
+      await expect(apple.mint(owner.address, 1)).to.be.revertedWith('Only the TREE contract can call this function');
+
     })
 
     describe('called by TREE contract', () => {
 
       it('mints apple to the specified user', () => {
-
+        // TODO
       })
-      
+
     })
 
   })
@@ -43,7 +61,7 @@ describe("APPLE", function () {
   describe('eating apple', () => {
 
     it('burns apple equal to amount eaten', () => {
-      
+
     })
     it('updates nutrition score equal to amount eaten', () => {
 

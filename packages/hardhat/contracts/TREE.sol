@@ -59,6 +59,12 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
     // uses tree index
     uint256[] trees_for_breeding;
 
+    event AppleRewarded(address mintee, uint256 treeId, uint256 amountMinted);
+
+    event TreeBirth(uint treeTokenIs, address mateTreeTokenId, address myTreeTokenId, bool naturalBirth);
+
+    event TreePurchased(address seller, address buyer, uint treeTokenId, uint sellingPrice);
+
     struct TreeData {
         bool isForSale; // 1 byte
         bool isListedForBreeding; // 1 byte
@@ -107,15 +113,16 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
 
         trees[tree_token_id].last_picked_apple_timestamp = block.timestamp;
 
-        APPLE(APPLE_address).mint(
-            msg.sender,
-            TreeHelpers.apples_to_mint_calculation(
-                trees[tree_token_id].birthday_timestamp,
-                trees[tree_token_id].growthStrength,
-                APPLE(APPLE_address).decimals(),
-                APPLE(APPLE_address).get_nutrition_score(msg.sender)
-            )
+        uint256 apple_to_mint = TreeHelpers.apples_to_mint_calculation(
+            trees[tree_token_id].birthday_timestamp,
+            trees[tree_token_id].growthStrength,
+            APPLE(APPLE_address).decimals(),
+            APPLE(APPLE_address).get_nutrition_score(msg.sender)
         );
+
+        APPLE(APPLE_address).mint(msg.sender, apple_to_mint);
+
+        emit AppleRewarded(msg.sender, tree_token_id, apple_to_mint);
     }
 
     // breeding of TREEs
@@ -295,8 +302,16 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
         );
 
         cancel_breeding_listing(mate_tree_token);
+        
+        emit TreeBirth(
+            next_tree_token_id,
+            ownerOf(mate_tree_token),
+            ownerOf(my_tree_token),
+            true
+        );
 
         next_tree_token_id++;
+
     }
 
     function cancel_breeding_listing(uint256 tokenId) public whenNotPaused {
@@ -385,6 +400,13 @@ contract TREE is ERC721, ERC721Holder, Ownable, Pausable {
 
         // transfer TREE NFT to the buyer
         _transfer(ownerOf(tree_token_id), msg.sender, tree_token_id);
+
+        emit TreePurchased(
+            ownerOf(tree_token_id),
+            msg.sender,
+            tree_token_id,
+            trees[tree_token_id].sellingPrice
+        );
     }
 
     function cancel_for_sale(uint256 tokenId) public whenNotPaused {

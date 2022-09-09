@@ -4,7 +4,7 @@ const { solidity } = require('ethereum-waffle')
 
 use(solidity)
 
-describe.only('TREE', function () {
+describe('TREE', function () {
   let myContract
 
   describe('TREE', function () {
@@ -12,7 +12,10 @@ describe.only('TREE', function () {
     let TREE;
     let APPLE;
 
+    let owner, user_1_address, user_2_address;
+    
     beforeEach(async () => {
+      [owner, user_1_address, user_2_address] = await ethers.getSigners();
       const TreeHelpers_contract = await ethers.getContractFactory(
         'TreeHelpers',
       )
@@ -21,18 +24,18 @@ describe.only('TREE', function () {
         'BreedingHelpers',
       )
       const BreedingHelpers = await BreedingHelpers_contract.deploy()
-  
+
       const ColorAverager_contract = await ethers.getContractFactory(
         'ColorAverager',
       )
       const ColorAverager = await ColorAverager_contract.deploy()
-      
+
       const APPLE_contract = await ethers.getContractFactory(
         'APPLE'
       )
-      
+
       APPLE = await APPLE_contract.deploy()
-  
+
       const TREE_contract = await ethers.getContractFactory('TREE', {
         libraries: {
           TreeHelpers: TreeHelpers.address,
@@ -40,7 +43,7 @@ describe.only('TREE', function () {
           ColorAverager: ColorAverager.address,
         },
       })
-  
+
       TREE = await TREE_contract.deploy(APPLE.address)
 
     })
@@ -49,21 +52,23 @@ describe.only('TREE', function () {
       expect((await TREE.name()).length).to.be.greaterThan(0)
     })
 
-    describe('minting gen zero trees', () => {
-      
-    })
+    // describe('minting gen zero trees', () => {
 
-    describe('picking APPLE', () => {
+    // })
 
-    })
+    // describe('picking APPLE', () => {
 
-    describe('selling TREEs', () => {
+    // })
 
-    })
+    // describe('selling TREEs', () => {
 
-    describe('breeding TREEs', () => {
+    // })
 
-    })
+    // describe('breeding TREEs', async () => {
+
+    //   await hardhatToken.connect(addr1).transfer(addr2.address, 50);
+
+    // })
 
   })
 })

@@ -6,13 +6,14 @@ var utils = require('ethers').utils;
 
 use(solidity)
 
-describe('BreedingHelpers', async function () {
+describe('BreedingHelpers', function () {
   let breedingHelpers;
 
-  const [owner] = await ethers.getSigners();
+  let owner;
 
   beforeEach(async () => {
-
+    
+    [owner] = await ethers.getSigners();
     const BreedingHelpersContract = await ethers.getContractFactory(
       'BreedingHelpers',
     )

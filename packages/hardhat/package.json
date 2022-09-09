@@ -37,7 +37,9 @@
     "test": "hardhat test --network hardhat",
     "test1": "hardhat test ./test/BreedingHelpers.test.js",
     "testp": "hardhat test --parallel",
+    "clean": "hardhat clean",
     "compile": "hardhat compile",
+    "deploy:m": "hardhat deploy --network mumbai",
     "deploy": "hardhat deploy --export-all ../react-app/src/contracts/hardhat_contracts.json",
     "postdeploy": "hardhat run scripts/publish.js",
     "watch": "node scripts/watch.js",
@@ -49,6 +51,7 @@
     "verify": "hardhat verify",
     "size": "yarn hardhat size-contracts",
     "truff:dash": "truffle dashboard --port 25012 --host localhost",
-    "truff:d": "hardhat deploy --network mumbai"
+    "truff:d": "hardhat deploy --network mumbai",
+    "cov": "hardhat coverage"
   }
 }

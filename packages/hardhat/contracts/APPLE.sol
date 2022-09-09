@@ -14,7 +14,7 @@ contract APPLE is ERC20, Ownable, Pausable {
 
   mapping(address => uint256) nutrition_score;
 
-  constructor() ERC20("Apples", "APPLE") {
+  constructor() ERC20("Apple", "APPLE") {
     // Do nothing on delpoy...
   }
 

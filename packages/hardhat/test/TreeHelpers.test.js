@@ -6,7 +6,7 @@ var utils = require('ethers').utils;
 
 use(solidity)
 
-describe('TreeHelpers', async function () {
+describe('TreeHelpers', function () {
   let treeHelpers;
   let appleContract;
 
@@ -31,11 +31,11 @@ describe('TreeHelpers', async function () {
   let twentyFiveYearOldBirthday_s;
   let fiftyYearOldBirthday_s;
 
-  const [owner] = await ethers.getSigners();
-
+  let owner;
+  
   // quick fix to let gas reporter fetch data from gas station & coinmarketcap
-  before((done) => {
-    setTimeout(done, 2000)
+  before(async () => {
+    [owner] = await ethers.getSigners();
   })
 
   beforeEach(async () => {

@@ -4,12 +4,13 @@ const { solidity } = require("ethereum-waffle");
 
 use(solidity);
 
-describe("APPLE", async function () {
+describe("APPLE", function () {
   let apple;
 
-  const [owner, user1, user2] = await ethers.getSigners();
-
+  let owner, user1, user2;
+  
   beforeEach(async () => {
+    [owner, user1, user2] = await ethers.getSigners();
     const AppleContract = await ethers.getContractFactory('APPLE');
     apple = await AppleContract.deploy()
   })
